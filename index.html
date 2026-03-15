@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>内容消费行业资讯 | Content Intel Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body class="index-page">
+
+  <!-- ── HEADER ─────────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="header-inner container">
+      <div class="logo-lockup">
+        <span class="logo-icon">◈</span>
+        <div class="logo-text">
+          <span class="logo-en">CONTENT INTEL HUB</span>
+          <span class="logo-cn">内容消费行业资讯</span>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <span class="nav-badge">每周一发布</span>
+        <a href="#industries" class="nav-link">行业报告</a>
+        <a href="#about" class="nav-link">关于</a>
+      </nav>
+    </div>
+    <!-- Ticker -->
+    <div class="ticker-wrap">
+      <div class="ticker-inner" id="ticker"></div>
+    </div>
+  </header>
+
+  <!-- ── HERO ───────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-orb hero-orb--1"></div>
+    <div class="hero-orb hero-orb--2"></div>
+    <div class="hero-orb hero-orb--3"></div>
+    <div class="container hero-content">
+      <div class="hero-kicker">
+        <span class="dot dot--pulse"></span>
+        每周聚焦中国内容消费行业核心动态
+      </div>
+      <h1 class="hero-title">
+        内容消费行业<br>
+        <em>资讯周报</em>
+      </h1>
+      <p class="hero-sub">游戏 · 短剧 · 漫剧 · 网文小说 — 覆盖市场大盘、榜单动态、厂商战略、出海趋势</p>
+      <div class="hero-stats" id="hero-stats"></div>
+      <a href="#industries" class="hero-cta">
+        浏览行业报告
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── INDUSTRIES ─────────────────────────────────────────── -->
+  <section class="industries-container container" id="industries">
+    <div class="industries-grid">
+
+      <!-- ── 游戏行业 Panel ── -->
+      <div class="industry-panel" data-industry="game">
+        <div class="panel-accent-bar"></div>
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <div class="panel-industry-icon">🎮</div>
+            <div>
+              <div class="panel-title">游戏行业</div>
+              <div class="panel-subtitle">手游 · 小游戏 · 出海 · 版号</div>
+            </div>
+          </div>
+          <span class="panel-count-badge" id="game-count-badge">-- 期</span>
+        </div>
+
+        <!-- 最新一期 -->
+        <div class="panel-latest">
+          <div class="section-eyebrow" style="margin-bottom:12px">
+            <span class="dot dot--live"></span>
+            最新一期
+          </div>
+          <div id="game-latest-card"></div>
+        </div>
+
+        <!-- 历史报告列表 -->
+        <div class="panel-archive">
+          <div class="panel-archive-title">历史报告</div>
+          <div class="report-list" id="game-archive-list"></div>
+        </div>
+      </div>
+
+      <!-- ── 短剧漫剧小说 Panel ── -->
+      <div class="industry-panel" data-industry="drama">
+        <div class="panel-accent-bar"></div>
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <div class="panel-industry-icon">📖</div>
+            <div>
+              <div class="panel-title">短剧漫剧小说</div>
+              <div class="panel-subtitle">短剧 · 漫剧 · 网文 · 出海</div>
+            </div>
+          </div>
+          <span class="panel-count-badge" id="drama-count-badge">-- 期</span>
+        </div>
+
+        <!-- 最新一期 -->
+        <div class="panel-latest">
+          <div class="section-eyebrow" style="margin-bottom:12px">
+            <span class="dot dot--live"></span>
+            最新一期
+          </div>
+          <div id="drama-latest-card"></div>
+        </div>
+
+        <!-- 历史报告列表 -->
+        <div class="panel-archive">
+          <div class="panel-archive-title">历史报告</div>
+          <div class="report-list" id="drama-archive-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── ABOUT ──────────────────────────────────────────────── -->
+  <section class="about-section container" id="about">
+    <div class="about-card">
+      <div class="about-icon">⬡</div>
+      <h2 class="about-title">关于本站</h2>
+      <p class="about-desc">
+        本站由 <strong>通用行业研究 Skill</strong> 驱动，每周（周一至周日）自动收集并整理
+        中国内容消费行业核心资讯，覆盖<strong>游戏</strong>与<strong>短剧漫剧小说</strong>两大赛道。
+      </p>
+      <p class="about-desc">
+        数据来源：GameLook、竞核、DataEye、SensorTower、艾媒咨询、新榜、36氪、娱乐资本论等。
+      </p>
+      <div class="about-meta">
+        <span>更新频率：每周一</span>
+        <span>·</span>
+        <span>覆盖行业：游戏 / 短剧漫剧小说</span>
+        <span>·</span>
+        <span>生成方式：AI 辅助研究</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────── -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span class="footer-logo">◈ CONTENT INTEL HUB</span>
+      <span class="footer-copy">数据仅供参考，不构成投资建议</span>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
