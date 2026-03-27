@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小云雀漫剧 Agent × Seedance 2.0 深度研究</title>
+  <style>
+    :root {
+      --bg: #09090f;
+      --bg2: #0f1018;
+      --bg3: #161824;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --accent: #7c6dfa;
+      --accent2: #fa6daa;
+      --accent3: #4de8a0;
+      --accent4: #f7cc50;
+      --accent5: #4db3fa;
+      --text: #eceef5;
+      --text2: #8b93ad;
+      --card: #12141f;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.72;
+      font-size: 14.5px;
+    }
+
+    /* ═══ HERO ═══ */
+    .hero {
+      background: linear-gradient(135deg, #10082a 0%, #0a0f22 50%, #0e1520 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 60px 44px 52px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,109,250,0.16) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: 5%;
+      width: 380px; height: 380px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(250,109,170,0.1) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(124,109,250,0.14);
+      border: 1px solid rgba(124,109,250,0.32);
+      border-radius: 24px;
+      padding: 5px 16px;
+      font-size: 12px;
+      color: #b0a4ff;
+      letter-spacing: 0.04em;
+      margin-bottom: 22px;
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; animation: pulse 1.8s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+    .hero h1 {
+      font-size: clamp(24px, 3.8vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      background: linear-gradient(130deg, #ffffff 0%, #c8beff 40%, #fa6daa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      color: var(--text2);
+      font-size: 15px;
+      max-width: 640px;
+      line-height: 1.75;
+      margin-bottom: 32px;
+    }
+    .hero-sub strong { color: #d4cdff; -webkit-text-fill-color: #d4cdff; }
+
+    .hero-meta {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .meta-pill {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .meta-pill .lbl { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; }
+    .meta-pill .val { font-size: 14px; color: var(--text); font-weight: 600; }
+
+    /* ═══ LAYOUT ═══ */
+    main { max-width: 1120px; margin: 0 auto; padding: 44px 24px 88px; }
+
+    /* ═══ SECTION HEADER ═══ */
+    .sec-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 52px 0 22px;
+    }
+    .sec-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+    .sec-head h2 { font-size: 19px; font-weight: 700; }
+    .sec-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* ═══ CARDS ═══ */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 26px;
+      margin-bottom: 14px;
+    }
+    .card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card p { color: var(--text2); font-size: 14px; line-height: 1.78; }
+    .card p + p { margin-top: 8px; }
+
+    /* ═══ KPI GRID ═══ */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; position: relative; overflow: hidden; }
+    .kpi::before { content: ''; position: absolute; top:0;left:0;right:0; height:2px; border-radius:12px 12px 0 0; }
+    .kpi.c1::before { background: linear-gradient(90deg,var(--accent),transparent); }
+    .kpi.c2::before { background: linear-gradient(90deg,var(--accent2),transparent); }
+    .kpi.c3::before { background: linear-gradient(90deg,var(--accent3),transparent); }
+    .kpi.c4::before { background: linear-gradient(90deg,var(--accent4),transparent); }
+    .kpi.c5::before { background: linear-gradient(90deg,var(--accent5),transparent); }
+    .kpi .kl { font-size: 11.5px; color: var(--text2); margin-bottom: 8px; }
+    .kpi .kv { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+    .kpi.c1 .kv { color: var(--accent); }
+    .kpi.c2 .kv { color: var(--accent2); }
+    .kpi.c3 .kv { color: var(--accent3); }
+    .kpi.c4 .kv { color: var(--accent4); }
+    .kpi.c5 .kv { color: var(--accent5); }
+    .kpi .ks { font-size: 11.5px; color: var(--text2); }
+
+    /* ═══ GRID ═══ */
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    @media (max-width: 720px) { .g2, .g3 { grid-template-columns: 1fr; } }
+
+    /* ═══ FLOW DIAGRAM ═══ */
+    .flow {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 26px;
+      margin-bottom: 14px;
+    }
+    .flow h3 { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
+    .flow-steps {
+      display: flex;
+      gap: 0;
+      align-items: stretch;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .flow-step {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 14px;
+      text-align: center;
+      position: relative;
+    }
+    .flow-step + .flow-step { margin-left: 10px; }
+    .flow-step + .flow-step::before {
+      content: '→';
+      position: absolute;
+      left: -14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .flow-step .fs-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(124,109,250,0.2);
+      color: var(--accent);
+      font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;
+    }
+    .flow-step .fs-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .flow-step .fs-desc { font-size: 11.5px; color: var(--text2); line-height: 1.5; }
+
+    /* ═══ COMPARISON TABLE ═══ */
+    .tbl-wrap { overflow-x: auto; margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      background: var(--bg3);
+      color: var(--text2);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border2);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 11px 14px; color: var(--text); vertical-align: top; line-height: 1.65; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    td.hi { color: var(--accent3); font-weight: 600; }
+
+    /* ═══ TAGS ═══ */
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 1px solid; white-space: nowrap; }
+    .tag.v { color: var(--accent); border-color: rgba(124,109,250,0.35); background: rgba(124,109,250,0.08); }
+    .tag.g { color: var(--accent3); border-color: rgba(77,232,160,0.35); background: rgba(77,232,160,0.08); }
+    .tag.r { color: var(--accent2); border-color: rgba(250,109,170,0.35); background: rgba(250,109,170,0.08); }
+    .tag.y { color: var(--accent4); border-color: rgba(247,204,80,0.35); background: rgba(247,204,80,0.08); }
+    .tag.b { color: var(--accent5); border-color: rgba(77,179,250,0.35); background: rgba(77,179,250,0.08); }
+
+    /* ═══ TIMELINE ═══ */
+    .timeline { position: relative; padding-left: 26px; }
+    .timeline::before {
+      content: '';
+      position: absolute; left: 7px; top: 4px; bottom: 4px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent2), var(--accent3), var(--accent4));
+      border-radius: 2px;
+    }
+    .tl { position: relative; margin-bottom: 20px; }
+    .tl::before {
+      content: '';
+      position: absolute; left: -22px; top: 6px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--accent);
+    }
+    .tl:nth-child(2)::before { border-color: #a094ff; }
+    .tl:nth-child(3)::before { border-color: var(--accent2); }
+    .tl:nth-child(4)::before { border-color: var(--accent4); }
+    .tl:nth-child(5)::before { border-color: var(--accent3); }
+    .tl:nth-child(6)::before { border-color: var(--accent5); }
+    .tl-date { font-size: 11px; color: var(--text2); letter-spacing: 0.05em; margin-bottom: 4px; }
+    .tl-text { font-size: 14px; color: var(--text); line-height: 1.68; }
+    .tl-text strong { color: #c8beff; }
+
+    /* ═══ PINNED INSIGHT BANNER ═══ */
+    .pinned-insights {
+      background: linear-gradient(135deg, #0e0b22 0%, #130f28 50%, #0d1420 100%);
+      border: 1px solid rgba(124,109,250,0.3);
+      border-radius: 16px;
+      padding: 32px 32px 24px;
+      margin-bottom: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pinned-insights::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3), var(--accent4), var(--accent5));
+      border-radius: 16px 16px 0 0;
+    }
+    .pinned-insights::after {
+      content: '';
+      position: absolute; bottom: -60px; right: -60px;
+      width: 250px; height: 250px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,109,250,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .pinned-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .pinned-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #b0a4ff;
+      font-weight: 700;
+    }
+    .pinned-header-line { flex: 1; height: 1px; background: rgba(124,109,250,0.2); }
+    .insight-list { display: flex; flex-direction: column; gap: 10px; }
+    .insight-pin {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .pin-num {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .insight-pin:nth-child(1) .pin-num { background: rgba(124,109,250,0.2); color: var(--accent); }
+    .insight-pin:nth-child(2) .pin-num { background: rgba(250,109,170,0.2); color: var(--accent2); }
+    .insight-pin:nth-child(3) .pin-num { background: rgba(77,232,160,0.2); color: var(--accent3); }
+    .insight-pin:nth-child(4) .pin-num { background: rgba(247,204,80,0.2); color: var(--accent4); }
+    .insight-pin:nth-child(5) .pin-num { background: rgba(77,179,250,0.2); color: var(--accent5); }
+    .pin-body { flex: 1; }
+    .pin-title { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+    .pin-text { font-size: 13px; color: var(--text2); line-height: 1.72; }
+    .pin-text strong { color: var(--text); }
+
+    /* ═══ INSIGHT CARDS ═══ */
+    .insight {
+      background: var(--bg3);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      padding: 17px 22px;
+      margin-bottom: 13px;
+    }
+    .insight.v2 { border-left-color: var(--accent2); }
+    .insight.v3 { border-left-color: var(--accent3); }
+    .insight.v4 { border-left-color: var(--accent4); }
+    .insight.v5 { border-left-color: var(--accent5); }
+    .i-tag { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px; color: var(--accent); }
+    .insight.v2 .i-tag { color: var(--accent2); }
+    .insight.v3 .i-tag { color: var(--accent3); }
+    .insight.v4 .i-tag { color: var(--accent4); }
+    .insight.v5 .i-tag { color: var(--accent5); }
+    .i-text { font-size: 14px; color: var(--text); line-height: 1.78; }
+
+    /* ═══ RISK ITEMS ═══ */
+    .risk {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 15px 18px;
+      display: flex;
+      gap: 13px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .risk-ico { font-size: 18px; flex-shrink: 0; line-height: 1.5; }
+    .risk-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .risk-desc { font-size: 13px; color: var(--text2); line-height: 1.65; }
+
+    /* ═══ QUOTE ═══ */
+    .quote {
+      background: rgba(124,109,250,0.06);
+      border: 1px solid rgba(124,109,250,0.2);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      font-style: italic;
+      color: #c8c0f8;
+      line-height: 1.78;
+    }
+    .quote .q-src { font-style: normal; font-size: 12px; color: var(--text2); margin-top: 8px; }
+
+    /* ═══ SOURCES ═══ */
+    .src-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 11px; }
+    .src {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 16px;
+      text-decoration: none;
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      transition: border-color .2s, background .2s;
+    }
+    .src:hover { border-color: rgba(124,109,250,0.4); background: rgba(124,109,250,0.06); }
+    .src-n {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      background: rgba(124,109,250,0.2);
+      color: var(--accent);
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .src-content { flex: 1; }
+    .src-t { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
+    .src-m { font-size: 11px; color: var(--text2); }
+
+    /* ═══ FOOTER ═══ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 40px;
+      text-align: center;
+      color: var(--text2);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ HERO ══════════════ -->
+<div class="hero">
+  <div class="hero-badge"><span class="dot"></span> 产品深度研究 · 最新动态</div>
+  <h1>小云雀漫剧 Agent<br>× Seedance 2.0</h1>
+  <p class="hero-sub">
+    字节跳动将旗下最强视频模型 <strong>Seedance 2.0</strong> 直接内嵌进创作工具 <strong>小云雀 AI</strong>，于2026年3月正式推出行业首个全链路短剧漫剧 Agent——
+    上传一份剧本，Agent 自动完成角色设计、分镜生成、成片输出，5人8天完成60集漫剧，首播4天抖音播放量破亿。
+  </p>
+  <div class="hero-meta">
+    <div class="meta-pill">
+      <span class="lbl">上线时间</span>
+      <span class="val">2026年3月19日</span>
+    </div>
+    <div class="meta-pill">
+      <span class="lbl">底层模型</span>
+      <span class="val">Seedance 2.0（字节自研）</span>
+    </div>
+    <div class="meta-pill">
+      <span class="lbl">产品定位</span>
+      <span class="val">全球首个搭载 Seedance 2.0 的行业 Agent</span>
+    </div>
+    <div class="meta-pill">
+      <span class="lbl">数据截止</span>
+      <span class="val">2026年3月25日</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main>
+
+  <!-- ══ PINNED INSIGHTS (TOP) ══ -->
+  <div class="pinned-insights">
+    <div class="pinned-header">
+      <span style="font-size:18px">💡</span>
+      <span class="pinned-label">核心观点提炼 · 5条独立判断</span>
+      <div class="pinned-header-line"></div>
+    </div>
+    <div class="insight-list">
+      <div class="insight-pin">
+        <div class="pin-num">1</div>
+        <div class="pin-body">
+          <div class="pin-title">这是漫剧行业的"临界点"产品，不是渐进升级</div>
+          <div class="pin-text">Seedance 2.0 将 AI 视频可用率从行业平均 20% 推至 90%，制作流程发生根本性重构——不再需要大量人工筛选，AI 输出可直接进入后期。这不是"好一点点"，是生产逻辑质变。<strong>小云雀 Agent 把"技术可用"翻译成了"业务可跑"，完成了从实验室到生产线的最后一跳。</strong></div>
+        </div>
+      </div>
+      <div class="insight-pin">
+        <div class="pin-num">2</div>
+        <div class="pin-body">
+          <div class="pin-title">字节在下一盘比快手更长的棋</div>
+          <div class="pin-text">快手可灵偏向专业 P 端（70%收入），本质是视频生成工具。字节要做的是<strong>全链路内容工厂</strong>：AI 生成（小云雀）→平台分发（抖音/红果）→商业变现，三端都在字节生态内闭合。字节的竞争优势不是模型比可灵好多少，而是"工具+平台+内容"的飞轮比对方转得快。</div>
+        </div>
+      </div>
+      <div class="insight-pin">
+        <div class="pin-num">3</div>
+        <div class="pin-body">
+          <div class="pin-title">门槛降低之后，"好故事判断力"的价值反而上升</div>
+          <div class="pin-text">当 AI 把制作成本压到"人人可做漫剧"，内容供给指数级扩张，但用户注意力总量固定。<strong>技术门槛消失，内容竞争从"能不能做"变成"值不值得看"。</strong>过去能把难看的锅推给"剧组太穷"——现在推不了。阅文、华策等强内容公司的竞争护城河反而在这一轮显得更稳固。</div>
+        </div>
+      </div>
+      <div class="insight-pin">
+        <div class="pin-num">4</div>
+        <div class="pin-body">
+          <div class="pin-title">小云雀的真正竞争对手不是快手，而是"独立工具链"</div>
+          <div class="pin-text">市场上大量团队自搭工具链（Midjourney 出图 + ComfyUI 动效 + CapCut 剪辑），成本更低、自由度更高。小云雀的价值命题是<strong>以"速度换自由度"</strong>——放弃精细控制权，换来近乎零的搭建成本和更短生产周期。更适合量产型漫剧，精品向内容仍需人工干预。</div>
+        </div>
+      </div>
+      <div class="insight-pin">
+        <div class="pin-num">5</div>
+        <div class="pin-body">
+          <div class="pin-title">这件事最大的想象空间在出海，不在国内</div>
+          <div class="pin-text">国内漫剧资本过热，2026年大概率触发洗牌。但海外漫剧市场（东南亚、中东、拉美）几乎空白。Seedance 2.0 的多语言音画同步能力恰是出海核心壁垒——<strong>一部中国漫剧理论上可无需修改剧本，自动生成泰语/印尼语/阿拉伯语版本并保持音画同步</strong>。率先跑通出海链路的团队将在空白市场建立先发优势。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── 0. 背景：为什么是现在 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(124,109,250,0.15)">🌐</div>
+    <h2>背景：这件事为什么发生在这个时间点</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="card">
+    <p>2025年，漫剧市场规模从约50亿急速跃升至168亿，2026年预估超240亿。但在爆发背后，行业面临三大技术瓶颈始终未被解决：<strong>① 角色跨场景一致性差</strong>（AI生成同一人物换场景就"换脸"），<strong>② 分镜连贯性低</strong>（画面前后逻辑割裂），<strong>③ 长剧本理解困难</strong>（AI无法追踪复杂人物关系线）。</p>
+    <p>2026年2月7日，字节跳动低调上线 Seedance 2.0 内测。这款模型同时解决了 AI 视频长期痛点——<strong>声音、连贯性、可控性</strong>三大问题，被《黑神话：悟空》制作人冯骥评为"地表最强视频生成模型，没有之一；AIGC 的童年时代结束了"。</p>
+    <p>一个月后的3月19日，字节跳动将这颗"核弹"内嵌进自家创作平台小云雀 AI，推出行业首个全链路漫剧短剧 Agent。从技术突破到生产落地，字节完成了最关键的一步跨越。</p>
+  </div>
+
+  <!-- ─────────────── 1. 核心数据 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(250,109,170,0.13)">📊</div>
+    <h2>核心数据与爆款验证</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi c1">
+      <div class="kl">内测爆款：《万兽独尊》播放量</div>
+      <div class="kv">1亿<span style="font-size:14px;font-weight:600">+</span></div>
+      <div class="ks">上线仅4天 · 登上红果漫剧热度榜第一</div>
+    </div>
+    <div class="kpi c2">
+      <div class="kl">制作团队 / 周期</div>
+      <div class="kv">5人<span style="font-size:14px;font-weight:600"> · 8天</span></div>
+      <div class="ks">60集 4万字剧本 · 传统工具需3–6个月</div>
+    </div>
+    <div class="kpi c3">
+      <div class="kl">效率提升倍数</div>
+      <div class="kv">15–22<span style="font-size:14px;font-weight:600">x</span></div>
+      <div class="ks">3–6个月 → 8天（同等体量作品）</div>
+    </div>
+    <div class="kpi c4">
+      <div class="kl">Seedance 2.0 视频可用率</div>
+      <div class="kv">90<span style="font-size:14px;font-weight:600">%</span></div>
+      <div class="ks">行业此前平均值约20%，提升4.5倍</div>
+    </div>
+    <div class="kpi c5">
+      <div class="kl">接入后制作成本降幅</div>
+      <div class="kv">60<span style="font-size:14px;font-weight:600">%+</span></div>
+      <div class="ks">头部短剧平台透露；90分钟项目从1万降至2000元</div>
+    </div>
+    <div class="kpi c1">
+      <div class="kl">剧本支持长度</div>
+      <div class="kv">10万<span style="font-size:14px;font-weight:600">字</span></div>
+      <div class="ks">支持一键上传直出全集成片</div>
+    </div>
+  </div>
+
+  <!-- ─────────────── 2. 产品功能拆解 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(77,232,160,0.12)">🔧</div>
+    <h2>产品功能拆解：小云雀漫剧 Agent</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="flow">
+    <h3>🎬 全链路工作流：剧本 → 成片</h3>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="fs-num">1</div>
+        <div class="fs-label">上传剧本</div>
+        <div class="fs-desc">支持 .docx 格式，最大10万字；也可输入一句话由 AI 自动生成剧本（首次免费）</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-num">2</div>
+        <div class="fs-label">基础配置</div>
+        <div class="fs-desc">选择画面风格（2D/3D/真人）、横屏/竖屏、是否需要旁白改编</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-num">3</div>
+        <div class="fs-label">故事蓝图</div>
+        <div class="fs-desc">Agent 自动解析世界观、时间线、人物关系，构建全局故事骨架（约半小时）</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-num">4</div>
+        <div class="fs-label">角色设计</div>
+        <div class="fs-desc">全生命周期角色管理：追踪年龄/服饰/面部特征变化，生成角色资产库</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-num">5</div>
+        <div class="fs-label">分镜编辑</div>
+        <div class="fs-desc">可逐个修改分镜提示词 & 角色引用，支持局部重生成；也可跳过直出</div>
+      </div>
+      <div class="flow-step">
+        <div class="fs-num">6</div>
+        <div class="fs-label">成片输出</div>
+        <div class="fs-desc">Seedance 2.0 驱动生成；多集连载只需一次剧本解析，逐集生成不重复劳动</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <h3>🧠 故事理解能力</h3>
+      <p>能追踪角色在不同集数中的性格弧线——"第一集懦弱，第三幕果决"，Agent 始终知道这是同一个人。人物小传、人际关系网均自动生成，解决了过去需要人工逐字阅读数万字剧本的工作量。</p>
+    </div>
+    <div class="card">
+      <h3>🎭 角色一致性管理</h3>
+      <p>跨场景、跨集数维持角色形象稳定——服装、神态、细节特征保持一致。这是过去 AI 图像生成最常见的痛点。系统提供角色替换接口，支持自定义角色图片覆盖。</p>
+    </div>
+    <div class="card">
+      <h3>⚡ Seedance 2.0 核心引擎</h3>
+      <p>支持文本/图像/视频/音频多模态输入；60秒内生成带原生音频的电影级多镜头视频。四种生成模式：全能参考、首尾帧、智能多帧、主体参考，可实现"导演级"精准控制。</p>
+    </div>
+    <div class="card">
+      <h3>🎨 风格覆盖</h3>
+      <p>系统根据题材自动推荐5种画风，也支持自定义输入。覆盖：2D 国风半厚涂、3D 写实风、动画风、真人转绘、科幻机甲等主流漫剧风格。</p>
+    </div>
+    <div class="card">
+      <h3>📝 AI 剧本生成</h3>
+      <p>无剧本可输入一句话故事创意，系统自动生成完整剧本。首次使用免费，不消耗积分。大幅降低了"没有剧本资源"的创作门槛。</p>
+    </div>
+    <div class="card">
+      <h3>🔁 局部重生成</h3>
+      <p>某个分镜不满意？不需要全部重跑，可局部重生成。整个生成流程压缩在1小时内，"反复抽卡"本身已经是一种性价比极高的生产策略。</p>
+    </div>
+  </div>
+
+  <!-- ─────────────── 3. Seedance 2.0 技术突破 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(247,204,80,0.12)">⚙️</div>
+    <h2>底层引擎：Seedance 2.0 技术突破</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="card">
+    <h3>🆚 Seedance 2.0 解决了哪三大行业痛点</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>痛点</th><th>行业此前现状</th><th>Seedance 2.0 突破</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>角色/场景一致性</td>
+            <td>跨镜头角色频繁"换脸"，分镜风格不统一</td>
+            <td class="hi">极强的参考一致性；多模态参考输入精准控制形象</td>
+          </tr>
+          <tr>
+            <td>分镜连贯性与可控性</td>
+            <td>前后镜头逻辑割裂，无法控制景别/运镜</td>
+            <td class="hi">自运镜+分运镜能力；可精准控制每一秒的镜头景别</td>
+          </tr>
+          <tr>
+            <td>音画同步</td>
+            <td>BGM、配音与画面脱节，明显"拼贴"感</td>
+            <td class="hi">原生音画同步生成；60秒内生成带原生音频的多镜头视频</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tags">
+      <span class="tag v">多模态输入</span>
+      <span class="tag g">60秒电影级生成</span>
+      <span class="tag b">自运镜控制</span>
+      <span class="tag y">多镜头叙事能力</span>
+      <span class="tag r">原生音画同步</span>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>📉 成本测算（业内人士估算）</h3>
+      <p>Seedance 2.0 生成 15 秒视频的可用率约 90%，行业此前均值约 20%。</p>
+      <p>以 90 分钟视频项目为例：成本从 <strong>1万元以上</strong> 降至约 <strong>2000 元</strong>，降幅约 80%。接入 Seedance 2.0 的短剧平台报告制作成本下降 60% 以上，制作周期缩短至 1–2 天。</p>
+    </div>
+    <div class="card">
+      <h3>🌐 业界评价</h3>
+      <p><strong>冯骥（游戏科学 CEO）：</strong>"地表最强视频生成模型，没有之一。AIGC 的童年时代结束了。"</p>
+      <p><strong>王兴兴（宇树科技创始人）：</strong>"Seedance 2.0 是全球目前最好的视频生成软件，全球遥遥领先。"</p>
+      <p><strong>开源证券研报：</strong>四大关键能力实现行业突破，或成为 AI 影视发展的重要节点。</p>
+    </div>
+  </div>
+
+  <div class="quote">
+    "Seedance 2.0 问世解决了 AI 漫剧行业的多个痛点。一是角色与场景一致性的难题，二是复杂物理动态模拟的真实度问题，三是运镜连续性和合理性问题。对行业而言，Seedance 2.0 满足了用户对高品质视频的体验需求，提高了生产效率，势必将带来行业的爆发式发展。"
+    <div class="q-src">—— 掌阅科技副总经理、董事会秘书 陈永倬，接受财联社采访（2026年2月）</div>
+  </div>
+
+  <!-- ─────────────── 4. 大事件时间线 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(77,179,250,0.12)">📅</div>
+    <h2>关键事件时间线</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="card">
+    <div class="timeline">
+      <div class="tl">
+        <div class="tl-date">2026年2月7日</div>
+        <div class="tl-text"><strong>Seedance 2.0 低调上线内测</strong>，迅速刷屏创作者圈层，引发冯骥、王兴兴等大佬公开盛赞。AI漫剧概念股集体涨停，掌阅科技封单额一度超40亿元。</div>
+      </div>
+      <div class="tl">
+        <div class="tl-date">2026年2月10日前后</div>
+        <div class="tl-text"><strong>字节跳动因版权争议紧急暂停真人素材参考能力</strong>，但其他功能持续开放。多家上市公司（掌阅、中文在线、兆驰股份等）同步公告接入计划；橙星梦工厂与火山引擎签署深度合作协议。</div>
+      </div>
+      <div class="tl">
+        <div class="tl-date">2026年2月12日</div>
+        <div class="tl-text"><strong>Seedance 2.0 正式全量发布</strong>，在豆包、即梦 AI、小云雀等字节系 App 全面上线。人人都是产品经理、21财经等媒体密集报道，A股AI漫剧板块第二波上涨。</div>
+      </div>
+      <div class="tl">
+        <div class="tl-date">2026年3月（内测期）</div>
+        <div class="tl-text"><strong>小云雀短剧 Agent 内测</strong>，创翊传媒使用该工具完成60集《万兽独尊》制作，5人8天完成4万字剧本全部内容，上线后4天抖音播放量破亿，登上红果漫剧热度榜第一。</div>
+      </div>
+      <div class="tl">
+        <div class="tl-date">2026年3月17日</div>
+        <div class="tl-text"><strong>ifanr（APPSO）首发深度测评</strong>，实测武侠剧本《墨影惊锋》等多个案例，验证 Agent 在故事理解、角色一致性、全链路工作流方面的能力，同日华策影视、柠萌影视等头部影视制作方公开表态布局。</div>
+      </div>
+      <div class="tl">
+        <div class="tl-date">2026年3月19日</div>
+        <div class="tl-text"><strong>小云雀 AI 官宣正式上线短剧 Agent</strong>，科技日报、北京商报、新京报等主流媒体密集报道。官方强调：这是"全球首个搭载 Seedance 2.0 的行业智能体"，支持最多10万字剧本一键直出视频成片。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── 5. 字节的战略逻辑 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(124,109,250,0.15)">🎯</div>
+    <h2>字节的战略逻辑：为什么要做这件事</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <h3>🔗 内容 × 工具 × 平台 三位一体</h3>
+      <p>字节跳动拥有完整的内容消费闭环：内容在<strong>抖音/红果</strong>分发，制作工具是<strong>小云雀 AI</strong>，底层模型是<strong>Seedance 2.0 / 即梦 AI</strong>。</p>
+      <p>这意味着字节既是"工厂"（提供制作工具），也是"超市"（控制分发渠道）——内容创作者用字节的工具做出来的内容，还要放在字节的平台上播，字节在产业链两端都有收益。</p>
+    </div>
+    <div class="card">
+      <h3>📡 精品漫剧激励政策配套</h3>
+      <p>2026年初，抖音短剧版权中心发布<strong>精品漫剧激励政策二期</strong>，与小云雀 AI 联合发起"<strong>小云雀 AI 漫剧</strong>"官方创作激励计划，通过政策补贴+工具赋能双轮驱动，快速扩充平台漫剧内容供给。</p>
+      <p>官方对外宣传的口径是"降低创作门槛"，实质是以此锁定中小创作者对字节工具链的依赖。</p>
+    </div>
+    <div class="card">
+      <h3>💡 Seedance 2.0 的商业化验证路径</h3>
+      <p>AI 视频大模型本身的变现逻辑一直不清晰（To B API 收入有限，To C 订阅增速有顶）。漫剧短剧是目前<strong>能大规模商用视频大模型的最纯粹下游应用场景</strong>——创作者有付费意愿，内容产量大、迭代快，是最理想的模型商业化试验场。</p>
+    </div>
+    <div class="card">
+      <h3>🌍 出海战略的技术储备</h3>
+      <p>漫剧出海已成行业共识（2026年），但出海需要解决的是<strong>多语言音画同步</strong>——这恰好是 Seedance 2.0 的核心能力之一（支持多国语言及多种地方口音）。字节通过小云雀 Agent 在国内验证工作流，积累数据，为后续漫剧出海工具化铺路。</p>
+    </div>
+  </div>
+
+  <!-- ─────────────── 6. 竞争对比 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(250,109,170,0.12)">⚔️</div>
+    <h2>竞品对比：字节 vs 快手 vs 其他</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>维度</th><th>小云雀 AI（字节）</th><th>可灵 AI（快手）</th><th>即梦 AI（字节）</th><th>橙星梦工厂（兆驰）</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>底层视频模型</td>
+          <td class="hi">Seedance 2.0</td>
+          <td>可灵 3.0</td>
+          <td>Seedance 2.0</td>
+          <td>Seedance + Seedream（豆包）</td>
+        </tr>
+        <tr>
+          <td>核心产品形态</td>
+          <td class="hi">全链路 Agent（剧本→成片）</td>
+          <td>视频生成工具 + 创作者生态</td>
+          <td>视频生成 + AIGC短剧招募</td>
+          <td>一站式 AI 创作平台</td>
+        </tr>
+        <tr>
+          <td>最大剧本长度</td>
+          <td class="hi">10万字</td>
+          <td>不支持长剧本</td>
+          <td>不支持长剧本</td>
+          <td>支持长上下文（豆包优势）</td>
+        </tr>
+        <tr>
+          <td>角色全局管理</td>
+          <td class="hi">全生命周期角色追踪</td>
+          <td>基础角色一致性</td>
+          <td>基础角色一致性</td>
+          <td>依赖豆包能力</td>
+        </tr>
+        <tr>
+          <td>故事理解深度</td>
+          <td class="hi">深度解析人物关系/时间线</td>
+          <td>较弱</td>
+          <td>较弱</td>
+          <td>豆包长上下文处理</td>
+        </tr>
+        <tr>
+          <td>分发平台打通</td>
+          <td class="hi">抖音 + 红果（字节生态）</td>
+          <td>快手平台分发</td>
+          <td>抖音（字节生态）</td>
+          <td>第三方平台合作</td>
+        </tr>
+        <tr>
+          <td>已验证爆款</td>
+          <td class="hi">《万兽独尊》4天破亿</td>
+          <td>《好一个乖乖女》直播带货</td>
+          <td>AIGC短剧创作者月入过万</td>
+          <td>商业化运营中</td>
+        </tr>
+        <tr>
+          <td>主要受众</td>
+          <td>中小创作者 + 专业团队</td>
+          <td>专业 P 端用户为主（70%收入）</td>
+          <td>中小创作者</td>
+          <td>专业制作机构</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="quote">
+    "OpenStoryline（小红书）定位于基于 AI 智能体的视频剪辑产品，通过上传几张图片，以对话方式进行剪辑，整体效果与抖音出品的小云雀类似。"
+    <div class="q-src">—— 人人都是产品经理《Seedance2.0引爆全网》，2026年2月12日（小红书已跟进布局）</div>
+  </div>
+
+  <!-- ─────────────── 7. 已有连锁效应 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(77,232,160,0.12)">🔥</div>
+    <h2>连锁效应：已经发生了什么</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <h3>🏦 资本市场震动</h3>
+      <p>Seedance 2.0 内测上线后，漫剧相关概念股集体封板涨停：掌阅科技封单额一度超 <strong>40亿</strong>，中文在线、德才股份、欢瑞世纪、兆驰股份等同步涨停。市场将 Seedance 2.0 → 小云雀 Agent 解读为"漫剧工业化临界点到来"的信号。</p>
+    </div>
+    <div class="card">
+      <h3>🎬 头部影视公司表态</h3>
+      <p>小云雀 Agent 发布后，<strong>华策影视</strong>（"好故事值得被更好讲述"）、<strong>柠萌影视</strong>（"降低成本、优化流程、提升 IP 转化效率"）等头部影视制作方相继公开表态，承认这已是"值得被严肃对待的下一个生产方式"。</p>
+    </div>
+    <div class="card">
+      <h3>🔧 上市公司接入潮</h3>
+      <p>掌阅科技"泡漫"平台宣布接入 Seedance 2.0；兆驰股份橙星梦工厂与火山引擎签署深度合作；上海电影与即梦 AI 战略合作落地。多家公司均明确将 Seedance 2.0 作为核心技术升级路径。</p>
+    </div>
+  </div>
+
+  <!-- ─────────────── 8. 产品局限与风险 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(250,109,170,0.12)">⚠️</div>
+    <h2>当前局限与风险</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="risk">
+    <div class="risk-ico">⏱️</div>
+    <div>
+      <div class="risk-title">生成等待时间较长</div>
+      <div class="risk-desc">官方提示故事蓝图构建约半小时以上，实际时间受剧本复杂程度影响。整体链路约1小时，对快速迭代场景构成摩擦。"反复抽卡"策略本质上是以时间换成本。</div>
+    </div>
+  </div>
+  <div class="risk">
+    <div class="risk-ico">👁️</div>
+    <div>
+      <div class="risk-title">一致性偶有瑕疵</div>
+      <div class="risk-desc">实测中出现文字乱码、穿模现象（如武侠打斗场景），分镜编辑自由度仍有成长空间。整体达到"信息流不被一眼识破"的水准，但距"精品级"仍有差距。</div>
+    </div>
+  </div>
+  <div class="risk">
+    <div class="risk-ico">©️</div>
+    <div>
+      <div class="risk-title">版权合规风险仍悬</div>
+      <div class="risk-desc">Seedance 2.0 因真人素材参考能力引发版权争议，字节已紧急暂停该功能。AI 训练数据溯源机制缺失、漫剧改编版权链条不清晰等问题在行业内普遍存在，监管风险持续累积。</div>
+    </div>
+  </div>
+  <div class="risk">
+    <div class="risk-ico">📦</div>
+    <div>
+      <div class="risk-title">内容同质化的加速效应</div>
+      <div class="risk-desc">同一套工具降低门槛的同时，会快速生产大量相似内容。"全员用小云雀"的结果是什么题材爆了就会被工业化复制，反而加速用户的审美疲劳。能工具化的是"皮相"，不能工具化的是"好故事判断力"。</div>
+    </div>
+  </div>
+  <div class="risk">
+    <div class="risk-ico">🔒</div>
+    <div>
+      <div class="risk-title">平台生态锁定的双刃剑</div>
+      <div class="risk-desc">用小云雀制作 → 在抖音/红果播出的链路，对创作者形成平台依赖。一旦字节调整分账规则或流量策略，创作者的退出成本极高。这是平台工具生态的典型锁定机制，创作者需意识到风险。</div>
+    </div>
+  </div>
+
+  <!-- ─────────────── 10. 参考资料 ─────────────── -->
+  <div class="sec-head">
+    <div class="sec-icon" style="background:rgba(77,232,160,0.12)">🔗</div>
+    <h2>参考资料与信源（全部真实来源）</h2>
+    <div class="sec-line"></div>
+  </div>
+
+  <p style="font-size:12px;color:var(--text2);margin-bottom:16px">以下所有链接均经过真实验证，对应报告中各具体信息的原始出处，按内容类型分组。</p>
+
+  <p style="font-size:13px;font-weight:700;color:var(--text2);margin:0 0 10px;letter-spacing:0.06em;text-transform:uppercase">📌 产品发布与功能介绍</p>
+  <div class="src-grid" style="margin-bottom:20px">
+    <a class="src" href="https://www.stdaily.com/web/gdxw/2026-03/20/content_488925.html" target="_blank" rel="noopener">
+      <div class="src-n">1</div>
+      <div class="src-content">
+        <div class="src-t">小云雀AI上线首个搭载Seedance 2.0的短剧Agent</div>
+        <div class="src-m">科技日报 · 杨雪 · 2026年3月20日 ｜ 官方正式发布报道</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.bbtnews.com.cn/2026/0319/587752.shtml" target="_blank" rel="noopener">
+      <div class="src-n">2</div>
+      <div class="src-content">
+        <div class="src-t">小云雀AI上线搭载Seedance 2.0的短剧智能体</div>
+        <div class="src-m">北京商报 · 魏蔚 · 2026年3月19日 ｜ 产品功能介绍</div>
+      </div>
+    </a>
+    <a class="src" href="https://m.bjnews.com.cn/detail/1773904795129098.html" target="_blank" rel="noopener">
+      <div class="src-n">3</div>
+      <div class="src-content">
+        <div class="src-t">搭载Seedance 2.0，小云雀AI上线短剧智能体</div>
+        <div class="src-m">新京报 · 韦英姿 · 2026年3月19日 ｜ 官宣当日媒体跟进</div>
+      </div>
+    </a>
+    <a class="src" href="https://finance.sina.cn/stock/jdts/2026-03-19/detail-inhrnzrv8770463.d.html?vt=4" target="_blank" rel="noopener">
+      <div class="src-n">4</div>
+      <div class="src-content">
+        <div class="src-t">小云雀AI上线首个搭载Seedance 2.0的短剧Agent，支持10万字剧本</div>
+        <div class="src-m">新浪财经 · 2026年3月19日 ｜ 产品参数来源（10万字上限）</div>
+      </div>
+    </a>
+  </div>
+
+  <p style="font-size:13px;font-weight:700;color:var(--text2);margin:0 0 10px;letter-spacing:0.06em;text-transform:uppercase">🧪 深度测评与实测报告</p>
+  <div class="src-grid" style="margin-bottom:20px">
+    <a class="src" href="https://www.ifanr.com/1658787" target="_blank" rel="noopener">
+      <div class="src-n">5</div>
+      <div class="src-content">
+        <div class="src-t">实测 Seedance 2.0 加持的小云雀最新 Agent，我一键生成了龙王赘婿</div>
+        <div class="src-m">ifanr（APPSO）· 2026年3月17日 ｜ 全链路体验：武侠/穿越/赘婿多题材实测，瑕疵与亮点均有记录</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.growthhk.cn/quan/156372.html" target="_blank" rel="noopener">
+      <div class="src-n">6</div>
+      <div class="src-content">
+        <div class="src-t">实测小云雀短剧Agent：一键成片将如何重塑行业生产模式？</div>
+        <div class="src-m">增长黑客（文娱价值官）· 2026年3月20日 ｜ 专访创翊传媒，《万兽独尊》制作详情，番茄/华策/柠萌表态</div>
+      </div>
+    </a>
+  </div>
+
+  <p style="font-size:13px;font-weight:700;color:var(--text2);margin:0 0 10px;letter-spacing:0.06em;text-transform:uppercase">⚙️ Seedance 2.0 技术发布与行业影响</p>
+  <div class="src-grid" style="margin-bottom:20px">
+    <a class="src" href="https://www.cls.cn/detail/2286046" target="_blank" rel="noopener">
+      <div class="src-n">7</div>
+      <div class="src-content">
+        <div class="src-t">Seedance2.0引爆AI漫剧赛道 业内看好 多家上市公司积极布局</div>
+        <div class="src-m">财联社 · 方彦博 · 2026年2月10日 ｜ 掌阅接入、上海电影合作、掌阅封单40亿等数据来源</div>
+      </div>
+    </a>
+    <a class="src" href="https://finance.sina.com.cn/stock/zqgd/2026-02-11/doc-inhmkyvr7844709.shtml" target="_blank" rel="noopener">
+      <div class="src-n">8</div>
+      <div class="src-content">
+        <div class="src-t">华泰证券：字节Seedance 2.0发布，AI视频工业化奇点已至</div>
+        <div class="src-m">新浪财经（华泰证券研报）· 2026年2月11日 ｜ 单集制作周期预测（7–10天→3天以内）、市场规模168亿/240亿数据来源</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.woshipm.com/ai/6344710.html" target="_blank" rel="noopener">
+      <div class="src-n">9</div>
+      <div class="src-content">
+        <div class="src-t">Seedance2.0引爆全网，AI视频赛道战火升级</div>
+        <div class="src-m">人人都是产品经理 · 2026年2月12日 ｜ 90分钟视频成本1万→2000元；小红书OpenStoryline竞品信息；可灵3.0对比</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.21jingji.com/article/20260212/herald/2c4e71010c3caa34723d41acac4b4bd8.html" target="_blank" rel="noopener">
+      <div class="src-n">10</div>
+      <div class="src-content">
+        <div class="src-t">Seedance2.0"洗牌"动画市场：字节们胶着</div>
+        <div class="src-m">21财经 · 2026年2月12日 ｜ 视频大模型竞争格局、AI漫剧作为商业化验证场景分析</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.stcn.com/article/detail/3637027.html" target="_blank" rel="noopener">
+      <div class="src-n">11</div>
+      <div class="src-content">
+        <div class="src-t">字节，再出爆款！引爆A股涨停潮</div>
+        <div class="src-m">证券时报 · 2026年2月10日 ｜ A股漫剧概念股集体涨停、字节Seedance 2.0内测上线</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.stcn.com/article/detail/3642286.html" target="_blank" rel="noopener">
+      <div class="src-n">12</div>
+      <div class="src-content">
+        <div class="src-t">AI漫剧概念受市场追捧 多只个股提示风险</div>
+        <div class="src-m">证券时报 · 叶玲珍 · 2026年2月13日 ｜ 中文在线、德才股份、欢瑞世纪等涨停详情；版权暂停事件</div>
+      </div>
+    </a>
+  </div>
+
+  <p style="font-size:13px;font-weight:700;color:var(--text2);margin:0 0 10px;letter-spacing:0.06em;text-transform:uppercase">🏭 上市公司布局与生态合作</p>
+  <div class="src-grid" style="margin-bottom:20px">
+    <a class="src" href="https://caifuhao.eastmoney.com/news/20260226170043558129200" target="_blank" rel="noopener">
+      <div class="src-n">13</div>
+      <div class="src-content">
+        <div class="src-t">掌阅科技旗下"泡漫平台"已率先接入Seedance 2.0</div>
+        <div class="src-m">东方财富财富号 · 2026年2月26日 ｜ 掌阅泡漫平台接入详情，"国内首个AI漫剧量产平台"</div>
+      </div>
+    </a>
+    <a class="src" href="https://caifuhao.eastmoney.com/news/20260319164317547475740" target="_blank" rel="noopener">
+      <div class="src-n">14</div>
+      <div class="src-content">
+        <div class="src-t">小云雀AI官宣上线短剧Agent功能，用户最多可上传10万字剧本</div>
+        <div class="src-m">东方财富财富号（华策影视吧）· 2026年3月19日 ｜ 华策影视、柠萌影视公开表态记录</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.21jingji.com/article/20260214/herald/95353f73d2ad34102be05fd3d613b2e5.html" target="_blank" rel="noopener">
+      <div class="src-n">15</div>
+      <div class="src-content">
+        <div class="src-t">字节Seedance 2.0爆火出圈！最牛股掌阅科技5连板</div>
+        <div class="src-m">21世纪经济报道 · 余诗棋 · 2026年2月14日 ｜ 掌阅5连板涨幅详情；行业资本反应</div>
+      </div>
+    </a>
+  </div>
+
+  <p style="font-size:13px;font-weight:700;color:var(--text2);margin:0 0 10px;letter-spacing:0.06em;text-transform:uppercase">📈 市场数据与行业背景</p>
+  <div class="src-grid" style="margin-bottom:8px">
+    <a class="src" href="https://www.bbtnews.com.cn/2026/0323/588103.shtml" target="_blank" rel="noopener">
+      <div class="src-n">16</div>
+      <div class="src-content">
+        <div class="src-t">市场规模激增 漫剧成各路资本新宠</div>
+        <div class="src-m">北京商报 · 卓洋 · 2026年3月23日 ｜ 漫剧市场168亿/243亿规模数据，三类玩家（网文大厂/跨界资本/视频平台）格局</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.stcn.com/article/detail/3631096.html" target="_blank" rel="noopener">
+      <div class="src-n">17</div>
+      <div class="src-content">
+        <div class="src-t">AI漫剧市场大爆发！上市公司争相掘金</div>
+        <div class="src-m">证券时报·数据宝 · 2026年2月5日 ｜ 1.2亿用户/2.8亿预测、2025年播放量700亿等核心数据</div>
+      </div>
+    </a>
+    <a class="src" href="https://www.news.cn/tech/20260109/b6cc8c12b74247709da1f6a0035cea8c/c.html" target="_blank" rel="noopener">
+      <div class="src-n">18</div>
+      <div class="src-content">
+        <div class="src-t">新华网科技观察：当AI遇到漫剧</div>
+        <div class="src-m">新华网 · 王岩 · 2026年1月9日 ｜ 2025年H1供给量复合增长83%、62%增量付费用户数据来源</div>
+      </div>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  小云雀漫剧 Agent × Seedance 2.0 深度研究报告 · 数据截止 2026年3月25日 · 内容综合自公开资料，仅供研究参考<br>
+  字节跳动 · 小云雀 AI · Seedance 2.0 · 快手可灵 · 财联社 · 科技日报 · ifanr
+</footer>
+
+</body>
+</html>
