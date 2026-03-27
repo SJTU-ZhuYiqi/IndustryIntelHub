@@ -42,8 +42,11 @@ function buildTicker() {
 function initIndexPage() {
   buildTicker();
   buildHeroStats();
+  buildInsights();
+  buildSpecialReports();
   buildIndustryPanel('game');
   buildIndustryPanel('drama');
+  initSearch();
 }
 
 function buildHeroStats() {
@@ -309,8 +312,215 @@ function buildFooterNav(currentReport, industry) {
 
 // ── SCROLL REVEAL ────────────────────────────────────────────────────────────
 
+function buildInsights() {
+  const grid = document.getElementById('insights-grid');
+  const updated = document.getElementById('insights-updated');
+  if (!grid) return;
+
+  if (updated && SITE_INSIGHTS.updatedAt) {
+    updated.textContent = '更新于 ' + formatDate(SITE_INSIGHTS.updatedAt);
+  }
+
+  const ACCENT_COLORS = [
+    { bg: 'rgba(37,99,235,.07)',   border: 'rgba(37,99,235,.2)',   num: 'var(--accent-blue)',   tag: '游戏 & 漫剧' },
+    { bg: 'rgba(124,58,237,.07)',  border: 'rgba(124,58,237,.2)',  num: 'var(--accent-violet)', tag: '平台生态' },
+    { bg: 'rgba(8,145,178,.07)',   border: 'rgba(8,145,178,.2)',   num: 'var(--accent-teal)',   tag: '出海' },
+    { bg: 'rgba(5,150,105,.07)',   border: 'rgba(5,150,105,.2)',   num: 'var(--accent-green)',  tag: '漫剧' },
+  ];
+
+  grid.innerHTML = SITE_INSIGHTS.insights.map((ins, i) => {
+    const c = ACCENT_COLORS[i % ACCENT_COLORS.length];
+    return `
+      <div class="insight-card" style="--ins-bg:${c.bg};--ins-border:${c.border};--ins-num:${c.num}">
+        <div class="insight-card-num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="insight-card-body">
+          <div class="insight-card-title">${ins.title}</div>
+          <p class="insight-card-text">${ins.body}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildSpecialReports() {
+  const grid = document.getElementById('special-grid');
+  if (!grid) return;
+
+  if (!SPECIAL_REPORTS || SPECIAL_REPORTS.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div>暂无专项研究</div>`;
+    return;
+  }
+
+  grid.innerHTML = SPECIAL_REPORTS.map(r => {
+    const isGame = r.industry === 'game';
+    const industryLabel = isGame ? '🎮 游戏' : '📖 短剧漫剧';
+    const accentColor = isGame ? 'var(--industry-game)' : 'var(--industry-drama)';
+    const accentBg = isGame ? 'rgba(37,99,235,.07)' : 'rgba(124,58,237,.07)';
+    const accentBorder = isGame ? 'rgba(37,99,235,.2)' : 'rgba(124,58,237,.2)';
+    const tags = (r.tags || []).slice(0, 4).map(t =>
+      `<span class="tag" style="color:${accentColor};background:${accentBg};border-color:${accentBorder}">${t}</span>`
+    ).join('');
+    return `
+      <a href="${r.path}" target="_blank" class="special-card" style="--sp-accent:${accentColor};--sp-bg:${accentBg};--sp-border:${accentBorder}">
+        <div class="special-card-accent-bar"></div>
+        <div class="special-card-body">
+          <div class="special-card-meta">
+            <span class="special-card-industry" style="color:${accentColor};background:${accentBg};border-color:${accentBorder}">${industryLabel}</span>
+            <span class="special-card-date">${formatDate(r.publishedAt)}</span>
+          </div>
+          <div class="special-card-title">${r.title}</div>
+          <p class="special-card-subtitle">${r.subtitle || ''}</p>
+          <p class="special-card-summary">${r.summary}</p>
+          <div class="special-card-footer">
+            <div class="special-card-tags">${tags}</div>
+            <span class="special-card-cta">
+              阅读报告
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+
+function buildSearchIndex() {
+  const items = [];
+  // Weekly reports
+  for (const [industry, reports] of Object.entries(REPORTS_BY_INDUSTRY)) {
+    const industryLabel = industry === 'drama' ? '短剧漫剧小说' : '游戏';
+    for (const r of reports) {
+      items.push({
+        type: 'weekly',
+        industry,
+        industryLabel,
+        id: r.id,
+        title: `${r.week} ${industryLabel}周报`,
+        summary: r.summary,
+        tags: r.tags || [],
+        highlights: r.highlights || [],
+        week: r.week,
+        period: r.period,
+        url: `report.html?id=${r.id}`,
+        searchText: [r.week, r.summary, ...(r.tags || []), ...(r.highlights || [])].join(' ').toLowerCase()
+      });
+    }
+  }
+  // Special reports
+  for (const r of (SPECIAL_REPORTS || [])) {
+    const industryLabel = r.industry === 'drama' ? '短剧漫剧小说' : '游戏';
+    items.push({
+      type: 'special',
+      industry: r.industry,
+      industryLabel,
+      id: r.id,
+      title: r.title,
+      summary: r.summary,
+      subtitle: r.subtitle || '',
+      tags: r.tags || [],
+      url: r.path,
+      searchText: [r.title, r.subtitle || '', r.summary, ...(r.tags || [])].join(' ').toLowerCase()
+    });
+  }
+  return items;
+}
+
+function initSearch() {
+  const input = document.getElementById('search-input');
+  const resultsEl = document.getElementById('search-results');
+  if (!input || !resultsEl) return;
+
+  const index = buildSearchIndex();
+  let activeIdx = -1;
+
+  function highlight(text, query) {
+    if (!query) return text;
+    const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(re, '<mark>$1</mark>');
+  }
+
+  function renderResults(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      resultsEl.hidden = true;
+      resultsEl.innerHTML = '';
+      activeIdx = -1;
+      return;
+    }
+
+    const hits = index.filter(item => item.searchText.includes(q)).slice(0, 8);
+    if (hits.length === 0) {
+      resultsEl.hidden = false;
+      resultsEl.innerHTML = `<div class="search-empty">没有找到与「${query}」相关的报告</div>`;
+      activeIdx = -1;
+      return;
+    }
+
+    resultsEl.hidden = false;
+    activeIdx = -1;
+    resultsEl.innerHTML = hits.map((item, i) => {
+      const isGame = item.industry === 'game';
+      const accentColor = isGame ? 'var(--industry-game)' : 'var(--industry-drama)';
+      const typeLabel = item.type === 'special' ? '专项研究' : '周报';
+      const typeBadgeStyle = item.type === 'special'
+        ? `color:var(--accent-teal);background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.2)`
+        : `color:${accentColor};background:${isGame ? 'rgba(37,99,235,.07)' : 'rgba(124,58,237,.07)'};border-color:${isGame ? 'rgba(37,99,235,.2)' : 'rgba(124,58,237,.2)'}`;
+      const target = item.type === 'special' ? ' target="_blank"' : '';
+      return `
+        <a href="${item.url}"${target} class="search-hit" data-idx="${i}">
+          <div class="search-hit-top">
+            <span class="search-hit-badge" style="${typeBadgeStyle}">${typeLabel}</span>
+            <span class="search-hit-industry" style="color:${accentColor}">${item.industryLabel}</span>
+          </div>
+          <div class="search-hit-title">${highlight(item.title, query)}</div>
+          <div class="search-hit-summary">${highlight(item.summary.slice(0, 80) + (item.summary.length > 80 ? '…' : ''), query)}</div>
+        </a>
+      `;
+    }).join('');
+  }
+
+  input.addEventListener('input', () => renderResults(input.value));
+
+  input.addEventListener('keydown', e => {
+    const hits = resultsEl.querySelectorAll('.search-hit');
+    if (e.key === 'Escape') {
+      input.value = '';
+      resultsEl.hidden = true;
+      resultsEl.innerHTML = '';
+      activeIdx = -1;
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, hits.length - 1);
+      hits.forEach((h, i) => h.classList.toggle('active', i === activeIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      hits.forEach((h, i) => h.classList.toggle('active', i === activeIdx));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      hits[activeIdx]?.click();
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-wrap')) {
+      resultsEl.hidden = true;
+      activeIdx = -1;
+    }
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim()) renderResults(input.value);
+  });
+}
+
+// ── SCROLL REVEAL ────────────────────────────────────────────────────────────
+
 function initScrollReveal() {
-  const items = document.querySelectorAll('.industry-panel, .about-card');
+  const items = document.querySelectorAll('.industry-panel, .about-card, .insight-card, .special-card');
   if (!('IntersectionObserver' in window)) return;
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {

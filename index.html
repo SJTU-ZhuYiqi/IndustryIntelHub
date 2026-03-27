@@ -23,6 +23,8 @@
       </div>
       <nav class="header-nav">
         <span class="nav-badge">每周一发布</span>
+        <a href="#insights" class="nav-link">核心观点</a>
+        <a href="#special" class="nav-link">专项研究</a>
         <a href="#industries" class="nav-link">行业报告</a>
         <a href="#about" class="nav-link">关于</a>
       </nav>
@@ -50,13 +52,42 @@
       </h1>
       <p class="hero-sub">游戏 · 短剧 · 漫剧 · 网文小说 — 覆盖市场大盘、榜单动态、厂商战略、出海趋势</p>
       <div class="hero-stats" id="hero-stats"></div>
-      <a href="#industries" class="hero-cta">
-        浏览行业报告
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
+      <!-- Search Bar -->
+      <div class="search-wrap">
+        <div class="search-box">
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <input type="text" id="search-input" class="search-input" placeholder="搜索报告、行业、关键词…" autocomplete="off">
+          <kbd class="search-hint">ESC 清空</kbd>
+        </div>
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
     </div>
+  </section>
+
+  <!-- ── CORE INSIGHTS ─────────────────────────────────────── -->
+  <section class="insights-section container" id="insights">
+    <div class="insights-header">
+      <div class="section-eyebrow">
+        <span class="dot dot--pulse"></span>
+        核心观点
+      </div>
+      <span class="insights-updated" id="insights-updated"></span>
+    </div>
+    <div class="insights-grid" id="insights-grid"></div>
+  </section>
+
+  <!-- ── SPECIAL REPORTS ───────────────────────────────────── -->
+  <section class="special-section container" id="special">
+    <div class="special-header">
+      <div class="section-eyebrow">
+        <span class="dot"></span>
+        专项研究
+      </div>
+    </div>
+    <div class="special-grid" id="special-grid"></div>
   </section>
 
   <!-- ── INDUSTRIES ─────────────────────────────────────────── -->
