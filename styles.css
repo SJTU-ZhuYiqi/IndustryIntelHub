@@ -1500,6 +1500,75 @@ img { display: block; max-width: 100%; }
 }
 .special-card:hover .special-card-cta { opacity: .75; }
 
+/* ── REPORT KPI ROW ──────────────────────────────────────────── */
+.rpt-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 36px;
+}
+.rpt-kpi {
+  background: var(--kpi-bg, var(--bg-2));
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--kpi-bar, var(--border-2));
+  border-radius: var(--radius);
+  padding: 14px 16px 13px;
+  position: relative;
+  overflow: hidden;
+}
+.rpt-kpi-value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--kpi-text, var(--accent-blue));
+  line-height: 1.1;
+  margin-bottom: 5px;
+}
+.rpt-kpi-label {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.rpt-kpi-delta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: .03em;
+}
+
+/* ── SECTION CONCLUSION CALLOUT ──────────────────────────────── */
+.section-conclusion {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, rgba(37,99,235,.05) 0%, rgba(99,102,241,.04) 100%);
+  border: 1px solid rgba(37,99,235,.18);
+  border-left: 3px solid var(--report-accent, var(--accent-blue));
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 13px 18px;
+  margin: 20px 0 24px;
+}
+.report-page[data-industry="drama"] .section-conclusion {
+  background: linear-gradient(135deg, rgba(124,58,237,.05) 0%, rgba(219,39,119,.04) 100%);
+  border-color: rgba(124,58,237,.2);
+  border-left-color: var(--industry-drama);
+}
+.section-conclusion-icon {
+  font-size: 10px;
+  color: var(--report-accent, var(--accent-blue));
+  flex-shrink: 0;
+  margin-top: 4px;
+  opacity: .7;
+}
+.section-conclusion p {
+  margin: 0 !important;
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.75;
+  font-weight: 500;
+}
+
 /* ── ANIMATIONS ─────────────────────────────────────────────── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }

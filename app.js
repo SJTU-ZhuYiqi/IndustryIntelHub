@@ -212,24 +212,70 @@ function buildHighlights(r, industry) {
   el.innerHTML = r.highlights.map(h => `<li>${h}</li>`).join('');
 }
 
+// KPI color → CSS var mapping
+const KPI_COLOR_MAP = {
+  blue:   { text: 'var(--accent-blue)',   bg: 'rgba(37,99,235,.06)',   bar: 'var(--accent-blue)' },
+  indigo: { text: 'var(--accent-indigo)', bg: 'rgba(99,102,241,.06)',  bar: 'var(--accent-indigo)' },
+  teal:   { text: 'var(--accent-teal)',   bg: 'rgba(8,145,178,.06)',   bar: 'var(--accent-teal)' },
+  green:  { text: 'var(--accent-green)',  bg: 'rgba(5,150,105,.06)',   bar: 'var(--accent-green)' },
+  orange: { text: 'var(--accent-orange)', bg: 'rgba(234,88,12,.06)',   bar: 'var(--accent-orange)' },
+  violet: { text: 'var(--accent-violet)', bg: 'rgba(124,58,237,.06)',  bar: 'var(--accent-violet)' },
+  pink:   { text: 'var(--accent-pink)',   bg: 'rgba(219,39,119,.06)',  bar: 'var(--accent-pink)' },
+};
+
+function buildKpiRow(kpis) {
+  if (!kpis || kpis.length === 0) return '';
+  const cards = kpis.map(k => {
+    const c = KPI_COLOR_MAP[k.color] || KPI_COLOR_MAP.blue;
+    return `
+      <div class="rpt-kpi" style="--kpi-text:${c.text};--kpi-bg:${c.bg};--kpi-bar:${c.bar}">
+        <div class="rpt-kpi-value">${k.value}</div>
+        <div class="rpt-kpi-label">${k.label}</div>
+        ${k.delta ? `<div class="rpt-kpi-delta">${k.delta}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+  return `<div class="rpt-kpi-row">${cards}</div>`;
+}
+
+function postProcessReportHtml(html) {
+  // 1. Convert **小结** paragraph → section-conclusion callout
+  html = html.replace(
+    /<p><strong>小结<\/strong><\/p>\s*<p>([\s\S]*?)<\/p>/g,
+    '<div class="section-conclusion"><span class="section-conclusion-icon">▶</span><p>$1</p></div>'
+  );
+  // Also handle: <p><strong>小结</strong>\n body in same p
+  html = html.replace(
+    /<p><strong>小结<\/strong>([\s\S]*?)<\/p>/g,
+    (_, body) => body.trim()
+      ? `<div class="section-conclusion"><span class="section-conclusion-icon">▶</span><p>${body.trim()}</p></div>`
+      : ''
+  );
+  return html;
+}
+
 function buildReportContent(r) {
   const el = document.getElementById('report-content');
   if (!el) return;
 
   const rawContent = r.content || '# 报告内容待填充\n\n请调用「通用行业研究」Skill 生成报告后，将 Markdown 内容粘贴到 `data.js` 对应条目的 `content` 字段。';
 
+  // Render KPI row (data-driven, before Markdown)
+  const kpiHtml = buildKpiRow(r.kpis);
+
   if (typeof marked === 'undefined') {
-    el.innerHTML = `<pre style="white-space:pre-wrap;font-size:14px;color:var(--text-secondary)">${rawContent}</pre>`;
+    el.innerHTML = kpiHtml + `<pre style="white-space:pre-wrap;font-size:14px;color:var(--text-secondary)">${rawContent}</pre>`;
     return;
   }
 
   marked.setOptions({ breaks: true, gfm: true });
 
-  // Try to extract "市场变化快评" section (##-level heading)
+  // Try to extract "市场变化快评" section
   const takeawayMatch = rawContent.match(
     /(?:^|\n)(#{1,2}\s*市场变化快评\s*\n)([\s\S]*?)(?=\n#{1,2}\s|\n---\s*\n#{1,2}\s|$)/
   );
 
+  let bodyHtml;
   if (takeawayMatch) {
     const takeawayMd = takeawayMatch[2].replace(/^\n---\n?/, '').trim();
     const restMd = rawContent
@@ -237,12 +283,10 @@ function buildReportContent(r) {
       .replace(/\n---\n\s*（以下为本期完整资讯）/, '')
       .trim();
 
-    const takeawayHtml = marked.parse(takeawayMd);
-    const mainHtml = marked.parse(restMd);
+    const takeawayHtml = postProcessReportHtml(marked.parse(takeawayMd));
+    const mainHtml = postProcessReportHtml(marked.parse(restMd));
 
-    const industryLabel = document.body.getAttribute('data-industry') === 'drama' ? '短剧小说' : '游戏';
-
-    el.innerHTML = `
+    bodyHtml = `
       <div class="key-takeaway">
         <div class="key-takeaway-header">
           <span class="key-takeaway-icon">💡</span>
@@ -253,8 +297,10 @@ function buildReportContent(r) {
       ${mainHtml}
     `;
   } else {
-    el.innerHTML = marked.parse(rawContent);
+    bodyHtml = postProcessReportHtml(marked.parse(rawContent));
   }
+
+  el.innerHTML = kpiHtml + bodyHtml;
 }
 
 function buildTOC(industry) {
