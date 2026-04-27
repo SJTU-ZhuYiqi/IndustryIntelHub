@@ -3,191 +3,350 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>内容消费行业资讯 | Content Intel Hub</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>内容消费行业简报 | Content Intel Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-</head>
-<body class="index-page">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <!-- ── HEADER ─────────────────────────────────────────────── -->
+    :root {
+      --navy:   #0f1f3d;
+      --navy-2: #1a2f52;
+      --accent: #3b82f6;
+      --accent-2: #6366f1;
+      --green:  #10b981;
+      --orange: #f59e0b;
+      --text:   #0f172a;
+      --text-2: #475569;
+      --text-3: #94a3b8;
+      --bg:     #f1f5f9;
+      --card:   #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 60%, #1e3a6a 100%);
+      padding: 40px 0 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .site-header::after {
+      content: '';
+      position: absolute;
+      right: -80px; top: -80px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(59,130,246,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 28px;
+      position: relative;
+    }
+    .header-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .header-badge {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #fff;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      padding: 4px 11px;
+      border-radius: 20px;
+    }
+    .header-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: blink 2.4s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%      { opacity: .35; }
+    }
+    .header-live {
+      font-size: 10px;
+      color: var(--green);
+      font-weight: 500;
+      letter-spacing: .04em;
+    }
+    .header-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 10px;
+      letter-spacing: -.01em;
+    }
+    .header-desc {
+      font-size: 13px;
+      color: rgba(255,255,255,.48);
+      line-height: 1.6;
+    }
+
+    /* ── TOC Navigation ── */
+    .toc-bar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .toc-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .toc-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+    .toc-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .toc-chip {
+      font-size: 11.5px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      color: var(--text-2);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .toc-chip:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .toc-chip.latest {
+      background: linear-gradient(90deg, #dcfce7, #bbf7d0);
+      color: #166534;
+      border-color: #86efac;
+      font-weight: 600;
+    }
+    .toc-chip.latest:hover {
+      background: var(--green);
+      color: #fff;
+      border-color: var(--green);
+    }
+    .toc-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+    }
+    .toc-links {
+      display: flex;
+      gap: 12px;
+    }
+    .toc-link {
+      font-size: 12px;
+      color: var(--text-2);
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+    .toc-link:hover {
+      background: #f1f5f9;
+      color: var(--accent);
+    }
+
+    /* ── Main ── */
+    .main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 32px 28px 72px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Report Cards ── */
+    .report-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .report-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      box-shadow: var(--shadow);
+      transition: box-shadow .18s, transform .18s, border-left-color .18s;
+      gap: 16px;
+    }
+    .report-card:hover {
+      box-shadow: 0 4px 24px rgba(59,130,246,.12), 0 1px 4px rgba(0,0,0,.06);
+      transform: translateY(-2px);
+      border-left-color: var(--accent-2);
+    }
+    .report-card-left { flex: 1; min-width: 0; }
+    .report-card-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
+    }
+    .report-card-week {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+    .badge-latest {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      background: linear-gradient(90deg, #d1fae5, #a7f3d0);
+      color: #065f46;
+      letter-spacing: .04em;
+      white-space: nowrap;
+      border: 1px solid #6ee7b7;
+    }
+    .report-card-summary {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .report-card-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .report-card-date {
+      font-size: 11.5px;
+      color: var(--text-3);
+      white-space: nowrap;
+    }
+    .report-card-industries {
+      display: flex;
+      gap: 5px;
+    }
+    .ind-tag {
+      font-size: 10.5px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #f0f4ff;
+      color: #4f46e5;
+      border: 1px solid #ddd6fe;
+      font-weight: 500;
+    }
+
+    /* ── Footer ── */
+    .site-footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 11.5px;
+      color: var(--text-3);
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 520px) {
+      .report-card-summary { display: none; }
+      .report-card-right { display: none; }
+      .header-title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
   <header class="site-header">
-    <div class="header-inner container">
-      <div class="logo-lockup">
-        <span class="logo-icon">◈</span>
-        <div class="logo-text">
-          <span class="logo-en">CONTENT INTEL HUB</span>
-          <span class="logo-cn">内容消费行业资讯</span>
-        </div>
+    <div class="header-inner">
+      <div class="header-eyebrow">
+        <span class="header-badge">Industry Brief</span>
+        <span class="header-dot"></span>
+        <span class="header-live">每周更新</span>
       </div>
-      <nav class="header-nav">
-        <span class="nav-badge">每周一发布</span>
-        <a href="#insights" class="nav-link">核心观点</a>
-        <a href="#special" class="nav-link">专项研究</a>
-        <a href="#industries" class="nav-link">行业报告</a>
-        <a href="#about" class="nav-link">关于</a>
-      </nav>
-    </div>
-    <!-- Ticker -->
-    <div class="ticker-wrap">
-      <div class="ticker-inner" id="ticker"></div>
+      <div class="header-title">内容消费行业资讯简报</div>
+      <div class="header-desc">覆盖游戏 · 短剧漫剧 — 数据仅供参考</div>
     </div>
   </header>
 
-  <!-- ── HERO ───────────────────────────────────────────────── -->
-  <section class="hero">
-    <div class="hero-bg-grid"></div>
-    <div class="hero-orb hero-orb--1"></div>
-    <div class="hero-orb hero-orb--2"></div>
-    <div class="hero-orb hero-orb--3"></div>
-    <div class="container hero-content">
-      <div class="hero-kicker">
-        <span class="dot dot--pulse"></span>
-        每周聚焦中国内容消费行业核心动态
+  <!-- ── TOC 导航 ── -->
+  <nav class="toc-bar" id="toc-nav">
+    <div class="toc-inner">
+      <div class="toc-title">📚 按周次导航</div>
+      <div class="toc-chips" id="toc-chips">
+        <!-- app.js 动态渲染 -->
       </div>
-      <h1 class="hero-title">
-        内容消费行业<br>
-        <em>资讯周报</em>
-      </h1>
-      <p class="hero-sub">游戏 · 短剧 · 漫剧 · 网文小说 — 覆盖市场大盘、榜单动态、厂商战略、出海趋势</p>
-      <div class="hero-stats" id="hero-stats"></div>
-      <!-- Search Bar -->
-      <div class="search-wrap">
-        <div class="search-box">
-          <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none">
-            <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M11 11l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          <input type="text" id="search-input" class="search-input" placeholder="搜索报告、行业、关键词…" autocomplete="off">
-          <kbd class="search-hint">ESC 清空</kbd>
-        </div>
-        <div class="search-results" id="search-results" hidden></div>
+      <div class="toc-divider"></div>
+      <div class="toc-links">
+        <a href="#report-count-label" class="toc-link">📋 报告列表</a>
+        <a href="#archive-by-sector" class="toc-link">🏷️ 按行业分类</a>
       </div>
     </div>
-  </section>
+  </nav>
 
-  <!-- ── CORE INSIGHTS ─────────────────────────────────────── -->
-  <section class="insights-section container" id="insights">
-    <div class="insights-header">
-      <div class="section-eyebrow">
-        <span class="dot dot--pulse"></span>
-        核心观点
-      </div>
-      <span class="insights-updated" id="insights-updated"></span>
+  <main class="main">
+    <div class="section-label" id="report-count-label">📋 历史报告归档</div>
+    <div class="report-list" id="report-list">
+      <!-- 由 app.js 渲染 -->
     </div>
-    <div class="insights-grid" id="insights-grid"></div>
-  </section>
+  </main>
 
-  <!-- ── SPECIAL REPORTS ───────────────────────────────────── -->
-  <section class="special-section container" id="special">
-    <div class="special-header">
-      <div class="section-eyebrow">
-        <span class="dot"></span>
-        专项研究
-      </div>
-    </div>
-    <div class="special-grid" id="special-grid"></div>
-  </section>
-
-  <!-- ── INDUSTRIES ─────────────────────────────────────────── -->
-  <section class="industries-container container" id="industries">
-    <div class="industries-grid">
-
-      <!-- ── 游戏行业 Panel ── -->
-      <div class="industry-panel" data-industry="game">
-        <div class="panel-accent-bar"></div>
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <div class="panel-industry-icon">🎮</div>
-            <div>
-              <div class="panel-title">游戏行业</div>
-              <div class="panel-subtitle">手游 · 小游戏 · 出海 · 版号</div>
-            </div>
-          </div>
-          <span class="panel-count-badge" id="game-count-badge">-- 期</span>
-        </div>
-
-        <!-- 最新一期 -->
-        <div class="panel-latest">
-          <div class="section-eyebrow" style="margin-bottom:12px">
-            <span class="dot dot--live"></span>
-            最新一期
-          </div>
-          <div id="game-latest-card"></div>
-        </div>
-
-        <!-- 历史报告列表 -->
-        <div class="panel-archive">
-          <div class="panel-archive-title">历史报告</div>
-          <div class="report-list" id="game-archive-list"></div>
-        </div>
-      </div>
-
-      <!-- ── 短剧漫剧小说 Panel ── -->
-      <div class="industry-panel" data-industry="drama">
-        <div class="panel-accent-bar"></div>
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <div class="panel-industry-icon">📖</div>
-            <div>
-              <div class="panel-title">短剧漫剧小说</div>
-              <div class="panel-subtitle">短剧 · 漫剧 · 网文 · 出海</div>
-            </div>
-          </div>
-          <span class="panel-count-badge" id="drama-count-badge">-- 期</span>
-        </div>
-
-        <!-- 最新一期 -->
-        <div class="panel-latest">
-          <div class="section-eyebrow" style="margin-bottom:12px">
-            <span class="dot dot--live"></span>
-            最新一期
-          </div>
-          <div id="drama-latest-card"></div>
-        </div>
-
-        <!-- 历史报告列表 -->
-        <div class="panel-archive">
-          <div class="panel-archive-title">历史报告</div>
-          <div class="report-list" id="drama-archive-list"></div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ── ABOUT ──────────────────────────────────────────────── -->
-  <section class="about-section container" id="about">
-    <div class="about-card">
-      <div class="about-icon">⬡</div>
-      <h2 class="about-title">关于本站</h2>
-      <p class="about-desc">
-        本站由 <strong>通用行业研究 Skill</strong> 驱动，每周（周一至周日）自动收集并整理
-        中国内容消费行业核心资讯，覆盖<strong>游戏</strong>与<strong>短剧漫剧小说</strong>两大赛道。
-      </p>
-      <p class="about-desc">
-        数据来源：GameLook、竞核、DataEye、SensorTower、艾媒咨询、新榜、36氪、娱乐资本论等。
-      </p>
-      <div class="about-meta">
-        <span>更新频率：每周一</span>
-        <span>·</span>
-        <span>覆盖行业：游戏 / 短剧漫剧小说</span>
-        <span>·</span>
-        <span>生成方式：AI 辅助研究</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── FOOTER ─────────────────────────────────────────────── -->
   <footer class="site-footer">
-    <div class="container footer-inner">
-      <span class="footer-logo">◈ CONTENT INTEL HUB</span>
-      <span class="footer-copy">数据仅供参考，不构成投资建议</span>
-    </div>
+    内容消费研究组 · 数据仅供内部参考
   </footer>
 
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?t=1745675000"></script>
+  <script src="app.js?t=1745675000"></script>
 </body>
 </html>

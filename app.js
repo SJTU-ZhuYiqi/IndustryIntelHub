@@ -1,430 +1,104 @@
 /**
- * 内容消费行业资讯 — Application Logic
- * Handles both index.html (industry panels) and report.html (detail).
+ * Content Intel Hub — App Logic (v4)
  */
 
-// ── HELPERS ─────────────────────────────────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 
 function formatDate(isoStr) {
+  if (!isoStr) return '';
   const d = new Date(isoStr);
   return `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月${String(d.getDate()).padStart(2,'0')}日`;
 }
 
-const TAG_COLORS_GAME  = ['tag--blue',   'tag--teal',   'tag--green', 'tag--orange', 'tag--indigo'];
-const TAG_COLORS_DRAMA = ['tag--violet', 'tag--pink',   'tag--indigo','tag--teal',   'tag--orange'];
-
-function buildTags(tags, industry, max = 99) {
-  const colors = industry === 'drama' ? TAG_COLORS_DRAMA : TAG_COLORS_GAME;
-  return tags.slice(0, max).map((t, i) =>
-    `<span class="tag ${colors[i % colors.length]}">${t}</span>`
-  ).join('');
+function getParam(key) {
+  return new URLSearchParams(window.location.search).get(key);
 }
 
-function getReportIdFromUrl() {
-  return new URLSearchParams(window.location.search).get('id');
-}
-
-// ── TICKER ──────────────────────────────────────────────────────────────────
-
-function buildTicker() {
-  const el = document.getElementById('ticker');
-  if (!el) return;
-  const all = [
-    ...REPORTS_BY_INDUSTRY.game.flatMap(r => r.highlights || []),
-    ...REPORTS_BY_INDUSTRY.drama.flatMap(r => r.highlights || [])
-  ];
-  const html = [...all, ...all].map(h => `<span class="ticker-item">${h}</span>`).join('');
-  el.innerHTML = html;
-}
-
-// ── INDEX PAGE ───────────────────────────────────────────────────────────────
-
-function initIndexPage() {
-  buildTicker();
-  buildHeroStats();
-  buildInsights();
-  buildSpecialReports();
-  buildIndustryPanel('game');
-  buildIndustryPanel('drama');
-  initSearch();
-}
-
-function buildHeroStats() {
-  const el = document.getElementById('hero-stats');
-  if (!el) return;
-  const gameCount  = REPORTS_BY_INDUSTRY.game.length;
-  const dramaCount = REPORTS_BY_INDUSTRY.drama.length;
-  const allReports = [...REPORTS_BY_INDUSTRY.game, ...REPORTS_BY_INDUSTRY.drama];
-  const latestDate = allReports
-    .map(r => r.publishedAt)
-    .sort()
-    .reverse()[0];
-
-  el.innerHTML = `
-    <div class="hero-stat animate-in animate-in--delay-1">
-      <span class="hero-stat-value">${gameCount + dramaCount}</span>
-      <span class="hero-stat-label">期报告</span>
-    </div>
-    <div class="hero-stat animate-in animate-in--delay-2">
-      <span class="hero-stat-value">2</span>
-      <span class="hero-stat-label">行业覆盖</span>
-    </div>
-    <div class="hero-stat animate-in animate-in--delay-3">
-      <span class="hero-stat-value">每周一</span>
-      <span class="hero-stat-label">更新周期</span>
-    </div>
-  `;
-}
-
-function buildIndustryPanel(industry) {
-  const reports = REPORTS_BY_INDUSTRY[industry] || [];
-
-  // count badge
-  const badge = document.getElementById(`${industry}-count-badge`);
-  if (badge) badge.textContent = `${reports.length} 期`;
-
-  // latest card
-  const latestEl = document.getElementById(`${industry}-latest-card`);
-  if (latestEl) {
-    if (reports.length === 0) {
-      latestEl.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div>暂无报告</div>`;
-    } else {
-      const r = reports[0];
-      latestEl.innerHTML = `
-        <div class="latest-card">
-          <div class="latest-card-header">
-            <span class="latest-week">${r.week}</span>
-            <span class="latest-period">${r.period}</span>
-          </div>
-          <div class="latest-title">${r.week} 资讯报告</div>
-          <p class="latest-summary">${r.summary}</p>
-          <ul class="highlights-inline">
-            ${r.highlights.slice(0, 3).map(h => `<li>${h}</li>`).join('')}
-          </ul>
-          <div class="latest-footer">
-            <div class="latest-tags">${buildTags(r.tags, industry, 4)}</div>
-            <a href="report.html?id=${r.id}" class="btn-read">
-              阅读完整报告
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </a>
-          </div>
-        </div>
-      `;
-    }
-  }
-
-  // archive list (skip first = latest)
-  const archiveEl = document.getElementById(`${industry}-archive-list`);
-  if (archiveEl) {
-    const archiveList = reports.slice(1);
-    if (archiveList.length === 0) {
-      archiveEl.innerHTML = `<div class="empty-state" style="padding:20px 0;font-size:12px;">暂无历史报告</div>`;
-    } else {
-      archiveEl.innerHTML = archiveList.map(r => `
-        <a href="report.html?id=${r.id}" class="report-list-item">
-          <div class="rli-left">
-            <span class="rli-week">${r.week}</span>
-            <span class="rli-summary">${r.summary}</span>
-          </div>
-          <div class="rli-right">
-            <span class="rli-date">${formatDate(r.publishedAt)}</span>
-            <span class="rli-arrow">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </div>
-        </a>
-      `).join('');
-    }
-  }
-}
-
-// ── REPORT DETAIL PAGE ───────────────────────────────────────────────────────
-
-function initReportPage() {
-  const id = getReportIdFromUrl();
-  const found = findReportById(id);
-
-  let report, industry;
-  if (found) {
-    report   = found.report;
-    industry = found.industry;
-  } else {
-    // fallback to first game report
-    report   = REPORTS_BY_INDUSTRY.game[0];
-    industry = 'game';
-  }
-
-  // Apply industry theme to body
-  document.body.setAttribute('data-industry', industry);
-
-  // Page title
-  const industryLabel = industry === 'drama' ? '短剧漫剧小说' : '游戏';
-  document.title = `${report.week} ${industryLabel}周报 | Content Intel Hub`;
-
-  buildReportHero(report, industry);
-  buildHighlights(report, industry);
-  buildReportContent(report);
-  buildTOC(industry);
-  buildFooterNav(report, industry);
-}
-
-function buildReportHero(r, industry) {
-  const badge = document.getElementById('report-week-badge');
-  const title = document.getElementById('report-title');
-  const meta  = document.getElementById('report-meta-row');
-  const tags  = document.getElementById('report-tags');
-
-  const industryLabel = industry === 'drama' ? '短剧漫剧小说' : '游戏';
-
-  if (badge) badge.textContent = r.week;
-  if (title) title.textContent = `${r.week} ${industryLabel}行业资讯报告`;
-  if (meta) {
-    meta.innerHTML = `
-      <span class="report-meta-item">
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-          <rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/>
-          <path d="M5 1v2M9 1v2M2 5h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-        ${r.period}
-      </span>
-      <span class="report-meta-item">
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.2"/>
-          <path d="M7 4.5V7l2 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-        发布于 ${formatDate(r.publishedAt)}
-      </span>
-      <span class="report-meta-item" style="color:${industry === 'drama' ? 'var(--industry-drama)' : 'var(--industry-game)'}">
-        ${industry === 'drama' ? '📖 短剧漫剧小说' : '🎮 游戏'}
-      </span>
-    `;
-  }
-  if (tags) tags.innerHTML = buildTags(r.tags, industry);
-}
-
-function buildHighlights(r, industry) {
-  const el = document.getElementById('highlights-list');
-  if (!el) return;
-  el.innerHTML = r.highlights.map(h => `<li>${h}</li>`).join('');
-}
-
-// KPI color → CSS var mapping
 const KPI_COLOR_MAP = {
-  blue:   { text: 'var(--accent-blue)',   bg: 'rgba(37,99,235,.06)',   bar: 'var(--accent-blue)' },
-  indigo: { text: 'var(--accent-indigo)', bg: 'rgba(99,102,241,.06)',  bar: 'var(--accent-indigo)' },
-  teal:   { text: 'var(--accent-teal)',   bg: 'rgba(8,145,178,.06)',   bar: 'var(--accent-teal)' },
-  green:  { text: 'var(--accent-green)',  bg: 'rgba(5,150,105,.06)',   bar: 'var(--accent-green)' },
-  orange: { text: 'var(--accent-orange)', bg: 'rgba(234,88,12,.06)',   bar: 'var(--accent-orange)' },
-  violet: { text: 'var(--accent-violet)', bg: 'rgba(124,58,237,.06)',  bar: 'var(--accent-violet)' },
-  pink:   { text: 'var(--accent-pink)',   bg: 'rgba(219,39,119,.06)',  bar: 'var(--accent-pink)' },
+  blue:   { text: '#2563eb', bg: 'rgba(37,99,235,.07)' },
+  indigo: { text: '#4f46e5', bg: 'rgba(79,70,229,.07)' },
+  teal:   { text: '#0891b2', bg: 'rgba(8,145,178,.07)' },
+  green:  { text: '#16a34a', bg: 'rgba(22,163,74,.07)' },
+  orange: { text: '#ea580c', bg: 'rgba(234,88,12,.07)' },
+  red:    { text: '#dc2626', bg: 'rgba(220,38,38,.07)' },
+  violet: { text: '#7c3aed', bg: 'rgba(124,58,237,.07)' },
+  pink:   { text: '#db2777', bg: 'rgba(219,39,119,.07)' },
 };
 
-function buildKpiRow(kpis) {
-  if (!kpis || kpis.length === 0) return '';
-  const cards = kpis.map(k => {
-    const c = KPI_COLOR_MAP[k.color] || KPI_COLOR_MAP.blue;
-    return `
-      <div class="rpt-kpi" style="--kpi-text:${c.text};--kpi-bg:${c.bg};--kpi-bar:${c.bar}">
-        <div class="rpt-kpi-value">${k.value}</div>
-        <div class="rpt-kpi-label">${k.label}</div>
-        ${k.delta ? `<div class="rpt-kpi-delta">${k.delta}</div>` : ''}
-      </div>
-    `;
-  }).join('');
-  return `<div class="rpt-kpi-row">${cards}</div>`;
-}
+// Priority config: color swatch + label
+const PRIORITY_MAP = {
+  high:  { dot: '#ef4444', badge: '#fef2f2', badgeBorder: '#fecaca', badgeText: '#b91c1c', icon: '🔴', label: '立即关注' },
+  watch: { dot: '#f59e0b', badge: '#fffbeb', badgeBorder: '#fde68a', badgeText: '#92400e', icon: '🟡', label: '持续跟踪' },
+  new:   { dot: '#6366f1', badge: '#eef2ff', badgeBorder: '#c7d2fe', badgeText: '#3730a3', icon: '🟣', label: '新机会' },
+  trend: { dot: '#0891b2', badge: '#ecfeff', badgeBorder: '#a5f3fc', badgeText: '#155e75', icon: '🔵', label: '结构趋势' },
+  risk:  { dot: '#ea580c', badge: '#fff7ed', badgeBorder: '#fed7aa', badgeText: '#9a3412', icon: '🟠', label: '风险预警' },
+};
 
-function postProcessReportHtml(html) {
-  // 1. Convert **小结** paragraph → section-conclusion callout
-  html = html.replace(
-    /<p><strong>小结<\/strong><\/p>\s*<p>([\s\S]*?)<\/p>/g,
-    '<div class="section-conclusion"><span class="section-conclusion-icon">▶</span><p>$1</p></div>'
-  );
-  // Also handle: <p><strong>小结</strong>\n body in same p
-  html = html.replace(
-    /<p><strong>小结<\/strong>([\s\S]*?)<\/p>/g,
-    (_, body) => body.trim()
-      ? `<div class="section-conclusion"><span class="section-conclusion-icon">▶</span><p>${body.trim()}</p></div>`
-      : ''
-  );
-  return html;
-}
+// ── WEEKLY REPORTS ADAPTER ────────────────────────────────────────────────────
 
-function buildReportContent(r) {
-  const el = document.getElementById('report-content');
-  if (!el) return;
-
-  const rawContent = r.content || '# 报告内容待填充\n\n请调用「通用行业研究」Skill 生成报告后，将 Markdown 内容粘贴到 `data.js` 对应条目的 `content` 字段。';
-
-  // Render KPI row (data-driven, before Markdown)
-  const kpiHtml = buildKpiRow(r.kpis);
-
-  if (typeof marked === 'undefined') {
-    el.innerHTML = kpiHtml + `<pre style="white-space:pre-wrap;font-size:14px;color:var(--text-secondary)">${rawContent}</pre>`;
-    return;
+function buildWeeklyList() {
+  if (typeof WEEKLY_REPORTS !== 'undefined' && WEEKLY_REPORTS.length) {
+    return WEEKLY_REPORTS.filter(w => w && w.week);
   }
-
-  marked.setOptions({ breaks: true, gfm: true });
-
-  // Try to extract "市场变化快评" section
-  const takeawayMatch = rawContent.match(
-    /(?:^|\n)(#{1,2}\s*市场变化快评\s*\n)([\s\S]*?)(?=\n#{1,2}\s|\n---\s*\n#{1,2}\s|$)/
-  );
-
-  let bodyHtml;
-  if (takeawayMatch) {
-    const takeawayMd = takeawayMatch[2].replace(/^\n---\n?/, '').trim();
-    const restMd = rawContent
-      .replace(takeawayMatch[0], '')
-      .replace(/\n---\n\s*（以下为本期完整资讯）/, '')
-      .trim();
-
-    const takeawayHtml = postProcessReportHtml(marked.parse(takeawayMd));
-    const mainHtml = postProcessReportHtml(marked.parse(restMd));
-
-    bodyHtml = `
-      <div class="key-takeaway">
-        <div class="key-takeaway-header">
-          <span class="key-takeaway-icon">💡</span>
-          <span class="key-takeaway-label">Key Takeaway · 市场变化快评</span>
-        </div>
-        <div class="key-takeaway-body">${takeawayHtml}</div>
-      </div>
-      ${mainHtml}
-    `;
-  } else {
-    bodyHtml = postProcessReportHtml(marked.parse(rawContent));
-  }
-
-  el.innerHTML = kpiHtml + bodyHtml;
-}
-
-function buildTOC(industry) {
-  const content = document.getElementById('report-content');
-  const nav = document.getElementById('toc-nav');
-  if (!content || !nav) return;
-  const headings = content.querySelectorAll('h2, h3');
-  if (headings.length === 0) return;
-  headings.forEach((h, i) => {
-    const slug = `section-${i}`;
-    h.id = slug;
-    const link = document.createElement('a');
-    link.href = `#${slug}`;
-    link.className = 'toc-link' + (h.tagName === 'H3' ? ' toc-link--h3' : '');
-    link.textContent = h.textContent;
-    nav.appendChild(link);
+  const byWeek = {};
+  const gameReports  = (typeof REPORTS_BY_INDUSTRY !== 'undefined') ? (REPORTS_BY_INDUSTRY.game  || []) : [];
+  const dramaReports = (typeof REPORTS_BY_INDUSTRY !== 'undefined') ? (REPORTS_BY_INDUSTRY.drama || []) : [];
+  gameReports.forEach(r => {
+    if (!byWeek[r.week]) byWeek[r.week] = { week: r.week, period: r.period, publishedAt: r.publishedAt };
+    byWeek[r.week].game = r;
   });
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      const id = e.target.getAttribute('id');
-      const link = nav.querySelector(`a[href="#${id}"]`);
-      if (link) link.classList.toggle('active', e.isIntersecting);
-    });
-  }, { rootMargin: '-20% 0px -70% 0px' });
-  headings.forEach(h => observer.observe(h));
+  dramaReports.forEach(r => {
+    if (!byWeek[r.week]) byWeek[r.week] = { week: r.week, period: r.period, publishedAt: r.publishedAt };
+    byWeek[r.week].drama = r;
+  });
+  return Object.values(byWeek).sort((a, b) => b.week.localeCompare(a.week));
 }
 
-function buildFooterNav(currentReport, industry) {
-  const el = document.getElementById('report-footer-nav');
-  if (!el) return;
-  const list = REPORTS_BY_INDUSTRY[industry] || [];
-  const idx = list.findIndex(r => r.id === currentReport.id);
-  const prev = list[idx + 1];
-  const next = list[idx - 1];
-  let html = '';
-  if (prev) {
-    html += `<a href="report.html?id=${prev.id}" class="nav-btn">
-      <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-        <path d="M11 7H3M6 4L3 7l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      ← ${prev.week}
-    </a>`;
-  } else { html += `<span></span>`; }
-  html += `<a href="index.html" class="nav-btn nav-btn--back">返回首页</a>`;
-  if (next) {
-    html += `<a href="report.html?id=${next.id}" class="nav-btn">
-      ${next.week} →
-      <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-        <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </a>`;
-  } else { html += `<span></span>`; }
-  el.innerHTML = html;
-}
+// ── INDEX PAGE ────────────────────────────────────────────────────────────────
 
-// ── SCROLL REVEAL ────────────────────────────────────────────────────────────
+function initIndexPage() {
+  const list = buildWeeklyList();
+  const container = document.getElementById('report-list');
+  const label = document.getElementById('report-count-label');
+  const tocChips = document.getElementById('toc-chips');
 
-function buildInsights() {
-  const grid = document.getElementById('insights-grid');
-  const updated = document.getElementById('insights-updated');
-  if (!grid) return;
-
-  if (updated && SITE_INSIGHTS.updatedAt) {
-    updated.textContent = '更新于 ' + formatDate(SITE_INSIGHTS.updatedAt);
+  // 渲染 TOC 导航
+  if (tocChips && list.length) {
+    tocChips.innerHTML = list.slice(0, 12).map((w, i) => {
+      const isLatest = i === 0;
+      return `<a href="report.html?week=${encodeURIComponent(w.week)}" class="toc-chip ${isLatest ? 'latest' : ''}">${w.week}${isLatest ? ' · 最新' : ''}</a>`;
+    }).join('');
   }
 
-  const ACCENT_COLORS = [
-    { bg: 'rgba(37,99,235,.07)',   border: 'rgba(37,99,235,.2)',   num: 'var(--accent-blue)',   tag: '游戏 & 漫剧' },
-    { bg: 'rgba(124,58,237,.07)',  border: 'rgba(124,58,237,.2)',  num: 'var(--accent-violet)', tag: '平台生态' },
-    { bg: 'rgba(8,145,178,.07)',   border: 'rgba(8,145,178,.2)',   num: 'var(--accent-teal)',   tag: '出海' },
-    { bg: 'rgba(5,150,105,.07)',   border: 'rgba(5,150,105,.2)',   num: 'var(--accent-green)',  tag: '漫剧' },
-  ];
+  if (!container) return;
 
-  grid.innerHTML = SITE_INSIGHTS.insights.map((ins, i) => {
-    const c = ACCENT_COLORS[i % ACCENT_COLORS.length];
-    return `
-      <div class="insight-card" style="--ins-bg:${c.bg};--ins-border:${c.border};--ins-num:${c.num}">
-        <div class="insight-card-num">${String(i + 1).padStart(2, '0')}</div>
-        <div class="insight-card-body">
-          <div class="insight-card-title">${ins.title}</div>
-          <p class="insight-card-text">${ins.body}</p>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
+  if (label) label.textContent = `📋 历史报告归档（共 ${list.length} 期）`;
 
-function buildSpecialReports() {
-  const grid = document.getElementById('special-grid');
-  if (!grid) return;
-
-  if (!SPECIAL_REPORTS || SPECIAL_REPORTS.length === 0) {
-    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div>暂无专项研究</div>`;
+  if (list.length === 0) {
+    container.innerHTML = `<div style="text-align:center;color:#9ca3af;padding:40px">暂无报告</div>`;
     return;
   }
 
-  grid.innerHTML = SPECIAL_REPORTS.map(r => {
-    const isGame = r.industry === 'game';
-    const industryLabel = isGame ? '🎮 游戏' : '📖 短剧漫剧';
-    const accentColor = isGame ? 'var(--industry-game)' : 'var(--industry-drama)';
-    const accentBg = isGame ? 'rgba(37,99,235,.07)' : 'rgba(124,58,237,.07)';
-    const accentBorder = isGame ? 'rgba(37,99,235,.2)' : 'rgba(124,58,237,.2)';
-    const tags = (r.tags || []).slice(0, 4).map(t =>
-      `<span class="tag" style="color:${accentColor};background:${accentBg};border-color:${accentBorder}">${t}</span>`
-    ).join('');
+  container.innerHTML = list.map((w, i) => {
+    const game  = w.game;
+    const drama = w.drama;
+    const summary = game ? game.summary : (drama ? drama.summary : '');
+    const isLatest = i === 0;
+
     return `
-      <a href="${r.path}" target="_blank" class="special-card" style="--sp-accent:${accentColor};--sp-bg:${accentBg};--sp-border:${accentBorder}">
-        <div class="special-card-accent-bar"></div>
-        <div class="special-card-body">
-          <div class="special-card-meta">
-            <span class="special-card-industry" style="color:${accentColor};background:${accentBg};border-color:${accentBorder}">${industryLabel}</span>
-            <span class="special-card-date">${formatDate(r.publishedAt)}</span>
+      <a href="report.html?week=${encodeURIComponent(w.week)}" class="report-card">
+        <div class="report-card-left">
+          <div class="report-card-title-row">
+            <span class="report-card-week">${w.week}</span>
+            ${isLatest ? '<span class="badge-latest">最新</span>' : ''}
           </div>
-          <div class="special-card-title">${r.title}</div>
-          <p class="special-card-subtitle">${r.subtitle || ''}</p>
-          <p class="special-card-summary">${r.summary}</p>
-          <div class="special-card-footer">
-            <div class="special-card-tags">${tags}</div>
-            <span class="special-card-cta">
-              阅读报告
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                <path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
+          <div class="report-card-summary">${summary}</div>
+        </div>
+        <div class="report-card-right">
+          <span class="report-card-date">${w.period || ''}</span>
+          <div class="report-card-industries">
+            ${game  ? '<span class="ind-tag">🎮 游戏</span>' : ''}
+            ${drama ? '<span class="ind-tag">📖 短剧漫剧</span>' : ''}
           </div>
         </div>
       </a>
@@ -432,161 +106,344 @@ function buildSpecialReports() {
   }).join('');
 }
 
-// ── SEARCH ────────────────────────────────────────────────────────────────────
+// ── REPORT DETAIL PAGE ────────────────────────────────────────────────────────
 
-function buildSearchIndex() {
-  const items = [];
-  // Weekly reports
-  for (const [industry, reports] of Object.entries(REPORTS_BY_INDUSTRY)) {
-    const industryLabel = industry === 'drama' ? '短剧漫剧小说' : '游戏';
-    for (const r of reports) {
-      items.push({
-        type: 'weekly',
-        industry,
-        industryLabel,
-        id: r.id,
-        title: `${r.week} ${industryLabel}周报`,
-        summary: r.summary,
-        tags: r.tags || [],
-        highlights: r.highlights || [],
-        week: r.week,
-        period: r.period,
-        url: `report.html?id=${r.id}`,
-        searchText: [r.week, r.summary, ...(r.tags || []), ...(r.highlights || [])].join(' ').toLowerCase()
-      });
+function initReportPage() {
+  try {
+    const weekParam = getParam('week');
+    const idParam   = getParam('id');
+    let weekly = null;
+
+    // 获取周报列表
+    const list = buildWeeklyList();
+    
+    if (!list || list.length === 0) {
+      console.error('buildWeeklyList返回空数组');
+      const t = document.getElementById('hero-title');
+      if (t) t.textContent = '数据加载失败';
+      return;
     }
+
+    if (weekParam) {
+      weekly = list.find(w => w.week === weekParam);
+      if (!weekly) {
+        console.log(`未找到周报: ${weekParam}, 使用最新一期`);
+        weekly = list[0];
+      }
+    } else if (idParam) {
+      weekly = list.find(w =>
+        (w.game  && w.game.id  === idParam) ||
+        (w.drama && w.drama.id === idParam)
+      );
+      if (!weekly) {
+        console.log(`未找到报告ID: ${idParam}, 使用最新一期`);
+        weekly = list[0];
+      }
+    } else {
+      weekly = list[0];
+    }
+
+    if (!weekly) {
+      console.error('weekly对象为空');
+      const t = document.getElementById('hero-title');
+      if (t) t.textContent = '报告未找到';
+      return;
+    }
+
+    console.log(`成功加载周报: ${weekly.week}`);
+    renderHero(weekly);
+    renderReportBody(weekly);
+  } catch (error) {
+    console.error('initReportPage错误:', error);
+    const t = document.getElementById('hero-title');
+    if (t) t.textContent = '页面加载失败';
   }
-  // Special reports
-  for (const r of (SPECIAL_REPORTS || [])) {
-    const industryLabel = r.industry === 'drama' ? '短剧漫剧小说' : '游戏';
-    items.push({
-      type: 'special',
-      industry: r.industry,
-      industryLabel,
-      id: r.id,
-      title: r.title,
-      summary: r.summary,
-      subtitle: r.subtitle || '',
-      tags: r.tags || [],
-      url: r.path,
-      searchText: [r.title, r.subtitle || '', r.summary, ...(r.tags || [])].join(' ').toLowerCase()
+}
+
+function renderHero(w) {
+  const el = id => document.getElementById(id);
+  const title = el('hero-title');
+  const meta  = el('hero-meta');
+  const tags  = el('hero-tags');
+
+  document.title = `${w.week} 内容消费周报 | Content Intel Hub`;
+  if (title) title.textContent = `${w.week} 内容消费行业资讯周报`;
+  if (meta) {
+    meta.innerHTML = `<span>${w.period || ''}</span><span>发布于 ${formatDate(w.publishedAt)}</span>`;
+  }
+  if (tags) {
+    const allTags = [
+      ...((w.game  && w.game.tags)  || []),
+      ...((w.drama && w.drama.tags) || [])
+    ].slice(0, 8);
+    tags.innerHTML = allTags.map(t => `<span class="hero-tag">${t}</span>`).join('');
+  }
+}
+
+function renderReportBody(w) {
+  const body = document.getElementById('report-body');
+  if (!body) return;
+
+  let html = renderInsightBanner(w);
+  if (w.game)  html += renderIndustrySection(w.game,  'game',  '🎮', '游戏行业',   '手游 · 开放世界 · 出海');
+  if (w.drama) html += renderIndustrySection(w.drama, 'drama', '📖', '短剧漫剧', 'AI短剧 · 漫剧 · 监管政策');
+
+  body.innerHTML = html;
+
+  if (typeof marked !== 'undefined') {
+    marked.setOptions({ breaks: true, gfm: true });
+    body.querySelectorAll('.md-placeholder').forEach(el => {
+      el.innerHTML = postProcessMd(marked.parse(el.getAttribute('data-md') || ''));
+      el.classList.remove('md-placeholder');
+    });
+  } else {
+    body.querySelectorAll('.md-placeholder').forEach(el => {
+      el.innerHTML = `<pre style="white-space:pre-wrap;font-size:13px">${el.getAttribute('data-md') || ''}</pre>`;
+      el.classList.remove('md-placeholder');
     });
   }
-  return items;
 }
 
-function initSearch() {
-  const input = document.getElementById('search-input');
-  const resultsEl = document.getElementById('search-results');
-  if (!input || !resultsEl) return;
+// ── INSIGHT BANNER ────────────────────────────────────────────────────────────
 
-  const index = buildSearchIndex();
-  let activeIdx = -1;
+function renderInsightBanner(w) {
+  const gameItems  = Array.isArray(w.game  && w.game.insight)  ? w.game.insight  : null;
+  const dramaItems = Array.isArray(w.drama && w.drama.insight) ? w.drama.insight : null;
 
-  function highlight(text, query) {
-    if (!query) return text;
-    const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(re, '<mark>$1</mark>');
+  if (!gameItems && !dramaItems) {
+    return renderLegacyInsightBanner(w);
   }
 
-  function renderResults(query) {
-    const q = query.trim().toLowerCase();
-    if (!q) {
-      resultsEl.hidden = true;
-      resultsEl.innerHTML = '';
-      activeIdx = -1;
-      return;
-    }
+  // Priority sort order: high > risk > watch > new > trend
+  const PRIORITY_ORDER = { high: 0, risk: 1, watch: 2, new: 3, trend: 4 };
+  const sortCards = arr => arr.sort((a, b) =>
+    (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99)
+  );
 
-    const hits = index.filter(item => item.searchText.includes(q)).slice(0, 8);
-    if (hits.length === 0) {
-      resultsEl.hidden = false;
-      resultsEl.innerHTML = `<div class="search-empty">没有找到与「${query}」相关的报告</div>`;
-      activeIdx = -1;
-      return;
-    }
+  const sortedGame  = sortCards([...(gameItems  || [])].map(c => ({ ...c, _sector: 'game' })));
+  const sortedDrama = sortCards([...(dramaItems || [])].map(c => ({ ...c, _sector: 'drama' })));
 
-    resultsEl.hidden = false;
-    activeIdx = -1;
-    resultsEl.innerHTML = hits.map((item, i) => {
-      const isGame = item.industry === 'game';
-      const accentColor = isGame ? 'var(--industry-game)' : 'var(--industry-drama)';
-      const typeLabel = item.type === 'special' ? '专项研究' : '周报';
-      const typeBadgeStyle = item.type === 'special'
-        ? `color:var(--accent-teal);background:rgba(8,145,178,.08);border-color:rgba(8,145,178,.2)`
-        : `color:${accentColor};background:${isGame ? 'rgba(37,99,235,.07)' : 'rgba(124,58,237,.07)'};border-color:${isGame ? 'rgba(37,99,235,.2)' : 'rgba(124,58,237,.2)'}`;
-      const target = item.type === 'special' ? ' target="_blank"' : '';
-      return `
-        <a href="${item.url}"${target} class="search-hit" data-idx="${i}">
-          <div class="search-hit-top">
-            <span class="search-hit-badge" style="${typeBadgeStyle}">${typeLabel}</span>
-            <span class="search-hit-industry" style="color:${accentColor}">${item.industryLabel}</span>
-          </div>
-          <div class="search-hit-title">${highlight(item.title, query)}</div>
-          <div class="search-hit-summary">${highlight(item.summary.slice(0, 80) + (item.summary.length > 80 ? '…' : ''), query)}</div>
-        </a>
-      `;
-    }).join('');
-  }
+  const gameCardsHtml  = sortedGame.map(card  => renderInsightCard(card)).join('');
+  const dramaCardsHtml = sortedDrama.map(card => renderInsightCard(card)).join('');
 
-  input.addEventListener('input', () => renderResults(input.value));
+  return `
+    <div class="insight-banner">
+      <div class="insight-banner-header">
+        <span class="insight-banner-icon">⭐</span>
+        <div class="insight-banner-titles">
+          <span class="insight-banner-title">核心结论 · 分析师研判</span>
+          <span class="insight-banner-sub">广告媒体平台视角 · 按优先级排序</span>
+        </div>
+      </div>
 
-  input.addEventListener('keydown', e => {
-    const hits = resultsEl.querySelectorAll('.search-hit');
-    if (e.key === 'Escape') {
-      input.value = '';
-      resultsEl.hidden = true;
-      resultsEl.innerHTML = '';
-      activeIdx = -1;
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      activeIdx = Math.min(activeIdx + 1, hits.length - 1);
-      hits.forEach((h, i) => h.classList.toggle('active', i === activeIdx));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      activeIdx = Math.max(activeIdx - 1, 0);
-      hits.forEach((h, i) => h.classList.toggle('active', i === activeIdx));
-    } else if (e.key === 'Enter' && activeIdx >= 0) {
-      hits[activeIdx]?.click();
-    }
-  });
+      <div class="insight-sector-block">
+        <div class="insight-sector-header insight-sector-header--game">
+          <span class="insight-sector-icon">🎮</span>
+          <span class="insight-sector-label">游戏行业</span>
+          <span class="insight-sector-count">${sortedGame.length} 条结论</span>
+        </div>
+        <div class="insight-grid">
+          ${gameCardsHtml}
+        </div>
+      </div>
 
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.search-wrap')) {
-      resultsEl.hidden = true;
-      activeIdx = -1;
-    }
-  });
-
-  input.addEventListener('focus', () => {
-    if (input.value.trim()) renderResults(input.value);
-  });
+      <div class="insight-sector-block">
+        <div class="insight-sector-header insight-sector-header--drama">
+          <span class="insight-sector-icon">📖</span>
+          <span class="insight-sector-label">短剧 · 漫剧</span>
+          <span class="insight-sector-count">${sortedDrama.length} 条结论</span>
+        </div>
+        <div class="insight-grid">
+          ${dramaCardsHtml}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
-// ── SCROLL REVEAL ────────────────────────────────────────────────────────────
+function renderInsightCard(card) {
+  const pm = PRIORITY_MAP[card.priority] || PRIORITY_MAP.watch;
+  const sectorClass = card._sector === 'game' ? 'insight-card--game' : 'insight-card--drama';
+  const sectorIcon  = card._sector === 'game' ? '🎮' : '📖';
 
-function initScrollReveal() {
-  const items = document.querySelectorAll('.industry-panel, .about-card, .insight-card, .special-card');
-  if (!('IntersectionObserver' in window)) return;
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.style.animation = 'fadeInUp .55s cubic-bezier(0.22,1,0.36,1) both';
-        obs.unobserve(e.target);
+  return `
+    <div class="insight-card ${sectorClass}">
+      <div class="insight-card-head">
+        <div class="insight-card-priority-row">
+          <span class="insight-priority-dot" style="background:${pm.dot}"></span>
+          <span class="insight-priority-badge" style="background:${pm.badge};border-color:${pm.badgeBorder};color:${pm.badgeText}">${pm.label}</span>
+          <span class="insight-card-label">${card.label || ''}</span>
+          <span class="insight-sector-icon">${sectorIcon}</span>
+        </div>
+        <div class="insight-card-title">${card.title}</div>
+      </div>
+      <div class="insight-card-body">${card.body}</div>
+      ${card.action ? `
+        <div class="insight-card-action">
+          <span class="insight-action-arrow">→</span>
+          <span>${card.action}</span>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderLegacyInsightBanner(w) {
+  const gameItems  = (w.game  && w.game.highlights)  || [];
+  const dramaItems = (w.drama && w.drama.highlights) || [];
+
+  let sectionsHtml = '';
+  if (gameItems.length) {
+    sectionsHtml += `
+      <div class="insight-section">
+        <div class="insight-section-label insight-section-label--game">
+          <span class="insight-dot insight-dot--game"></span>🎮 游戏行业要点
+        </div>
+        <ul class="insight-items">
+          ${gameItems.map(h => `<li class="insight-item">${h}</li>`).join('')}
+        </ul>
+      </div>`;
+  }
+  if (dramaItems.length) {
+    sectionsHtml += `
+      <div class="insight-section">
+        <div class="insight-section-label insight-section-label--drama">
+          <span class="insight-dot insight-dot--drama"></span>📖 短剧漫剧要点
+        </div>
+        <ul class="insight-items">
+          ${dramaItems.map(h => `<li class="insight-item">${h}</li>`).join('')}
+        </ul>
+      </div>`;
+  }
+  return `
+    <div class="insight-banner">
+      <div class="insight-banner-header">
+        <span class="insight-banner-icon">⭐</span>
+        <div class="insight-banner-titles">
+          <span class="insight-banner-title">本周要点</span>
+          <span class="insight-banner-sub">${w.week}</span>
+        </div>
+      </div>
+      ${sectionsHtml}
+    </div>`;
+}
+
+// ── INDUSTRY SECTION ──────────────────────────────────────────────────────────
+
+function renderIndustrySection(r, type, icon, name, sub) {
+  const isGame = type === 'game';
+  const anchor = `section-${type}`;
+  const kpiHtml = buildKpiRow(r.kpis, type);
+
+  const calloutText = r.callout || r.summary || '';
+  const calloutHtml = calloutText ? `
+    <div class="section-callout ${isGame ? '' : 'section-callout--drama'}">
+      <div class="section-callout-icon">👔</div>
+      <div class="section-callout-body">
+        <div class="section-callout-label">小结</div>
+        <div>${calloutText}</div>
+      </div>
+    </div>` : '';
+
+  return `
+    <div class="industry-section section-${type}" id="${anchor}">
+      <div class="industry-header ${isGame ? '' : 'industry-header--drama'}">
+        <span class="industry-icon">${icon}</span>
+        <div class="industry-info">
+          <div class="industry-name">${name}</div>
+          <div class="industry-sub">${sub}</div>
+        </div>
+        <span class="industry-pill ${isGame ? '' : 'industry-pill--drama'}">${r.week}</span>
+      </div>
+      ${kpiHtml}
+      ${calloutHtml}
+      <div class="markdown-body md-placeholder" data-md="${escapeAttr(r.content || '')}"></div>
+    </div>`;
+}
+
+function escapeAttr(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function buildKpiRow(kpis, type) {
+  if (!kpis || kpis.length === 0) return '';
+  const cards = kpis.map(k => {
+    const c = KPI_COLOR_MAP[k.color] || KPI_COLOR_MAP.blue;
+    return `
+      <div class="kpi-card" style="--kpi-color:${c.text};--kpi-bg:${c.bg}">
+        <div class="kpi-value" style="color:${c.text}">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+        ${k.delta ? `<div class="kpi-delta">${k.delta}</div>` : ''}
+      </div>`;
+  }).join('');
+  return `<div class="kpi-row">${cards}</div>`;
+}
+
+function postProcessMd(html) {
+  // 📌 blockquotes → amber callout
+  html = html.replace(
+    /<blockquote>\s*<p>📌\s*([\s\S]*?)<\/p>\s*<\/blockquote>/g,
+    '<div class="md-callout"><span>📌</span><p>$1</p></div>'
+  );
+  // Hide ⭐ 核心结论 / 综合研判 section (already in banner)
+  html = html.replace(
+    /<h2[^>]*>[^<]*(?:⭐|核心结论|综合研判)[^<]*<\/h2>([\s\S]*?)(?=<h2|$)/g,
+    '<hr>'
+  );
+  
+  // 选择性加粗逻辑
+  // 1. bullet point冒号前的内容加粗
+  html = html.replace(
+    /<li>([^:]+):([^<]*)/g,
+    (match, beforeColon, afterColon) => {
+      // 跳过已经包含strong标签的
+      if (beforeColon.includes('<strong>')) return match;
+      return `<li><strong>${beforeColon}</strong>:${afterColon}`;
+    }
+  );
+  
+  // 2. 表格第一列加粗（不包括标题行）
+  // 创建临时DOM来操作
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  
+  // 处理所有表格
+  doc.querySelectorAll('table').forEach(table => {
+    // 获取所有行（跳过标题行）
+    const rows = table.querySelectorAll('tr');
+    rows.forEach((row, rowIndex) => {
+      // 跳过标题行（第一行）
+      if (rowIndex === 0) return;
+      
+      // 获取第一列单元格
+      const firstCell = row.querySelector('td:first-child');
+      if (firstCell) {
+        const text = firstCell.textContent.trim();
+        if (text && !firstCell.innerHTML.includes('<strong>')) {
+          firstCell.innerHTML = `<strong>${text}</strong>`;
+        }
       }
     });
-  }, { threshold: 0.06 });
-  items.forEach(el => obs.observe(el));
+  });
+  
+  // 将处理后的HTML转换回字符串
+  const serializer = new XMLSerializer();
+  const processedHtml = serializer.serializeToString(doc.body);
+  
+  // 提取body内容（去掉body标签）
+  const bodyContent = processedHtml.replace(/^<body>|<\/body>$/g, '');
+  
+  return bodyContent;
 }
 
-// ── BOOT ─────────────────────────────────────────────────────────────────────
+// ── BOOT ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-  const isReportPage = document.body.classList.contains('report-page');
-  if (isReportPage) {
-    initReportPage();
-  } else {
-    initIndexPage();
-  }
-  initScrollReveal();
+  const isReport = document.getElementById('report-body') !== null;
+  if (isReport) initReportPage();
+  else initIndexPage();
 });
